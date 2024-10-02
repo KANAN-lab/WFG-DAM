@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Lottie Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js"></script>
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .diff-cell {
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .diff-cell.zero {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .diff-cell.positive {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .diff-cell.negative {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    th, td {
+      white-space: nowrap;
+      vertical-align: middle;
+      text-align: center;
+      padding: 1rem;
+    }
+    .table th, .table td {
+      width: 14.28%;
+      vertical-align: middle;
+      padding: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+    .table {
+      border-collapse: separate;
+      border-spacing: 0 2px;
+    }
+    .table-hover tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+    /* CSS for aligning the quantity and unit */
+    .qty-pallet {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .qty-pallet .number {
+      text-align: center;
+      flex-grow: 1;
+    }
+    .qty-pallet .unit {
+      text-align: right;
+      padding-left: 10px;
+      flex-shrink: 0;
+    }
+    /* Centered alert styling */
+    .alert-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      width: 50%;
+      display: none;
+    }
+    /* Style for total row */
+    .total-row {
+      font-weight: bold;
+    }
+    /* Loading overlay styling */
+    .loading-overlay {
+      position: fixed; /* Ensures the overlay covers the entire viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none; /* Hidden by default */
+    }
+    /* Lottie container styling */
+    .lottie-container {
+      width: 200px;
+      height: 200px;
+    }
+    @media (max-width: 576px) {
+      .lottie-container {
+        width: 100px;
+        height: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay with Lottie Animation -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="lottie-container" id="loadingAnimation"></div>
+  </div>
+
+  <div class="container mt-4">
+    <h3 class="text-center mb-4" id="currentMonth"></h3>
+
+    <!-- Filter Section: Date and Session in 1 Div, horizontally aligned -->
+    <div class="row mb-3">
+      <!-- Date Picker for Selecting the Date -->
+      <div class="col-md-6">
+        <label for="selectedDate">Select Date:</label>
+        <input type="date" id="selectedDate" class="form-control" />
+      </div>
+
+      <!-- Dropdown to select session -->
+      <div class="col-md-6">
+        <label for="selectedSession">Select Session:</label>
+        <select id="selectedSession" class="form-control">
+          <option value="morning">Morning (01:00 - 12:00)</option>
+          <option value="afternoon">Afternoon (13:00 - 24:00)</option>
+        </select>
+      </div>
+    </div>
+
+    <table class="table table-bordered table-hover text-center">
+      <thead class="thead-dark">
+        <tr>
+          <th>MID</th>
+          <th>NAME</th>
+          <th>CONV</th>
+          <th>QTY SO</th>
+          <th>QTY SAP</th>
+          <th>DIFF SO-SAP</th>
+          <th>QTY PALLET</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Table rows will be populated here -->
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="6">Total QTY PALLET</td>
+          <td>
+            <div class="qty-pallet">
+              <div class="number" id="totalQtyPallet">0.00</div>
+              <div class="unit">Pallet</div>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- Remarks Section -->
+    <div class="form-group mt-3">
+      <label for="remarksTextarea">Remarks (for surplus or deficit):</label>
+      <textarea id="remarksTextarea" class="form-control" rows="1" readonly style="overflow:hidden; resize:none;"></textarea>
+    </div>
+
+    <!-- Centered Bootstrap Alert for Copy Success -->
+    <div id="copyAlert" class="alert alert-success alert-center" role="alert">
+      QTY SO values copied successfully!
+    </div>
+
+    <div class="text-right">
+      <p id="currentDate"></p>
+    </div>
+    <div class="d-flex justify-content-between">
+      <!-- Back To Dashboard -->
+      <button class="btn btn-danger" onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
+      <!-- Button to Copy QTY SO -->
+      <button class="btn btn-success back-button" onclick="copyQTYSO()">Copy QTY SO</button>
+    </div>
+  </div>
+
+  <script>
+    const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+                        "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const currentDate = new Date();
+    document.getElementById("currentMonth").textContent = monthNames[currentDate.getMonth()];
+
+    let loadingAnimation = null; // Variable to hold the Lottie animation instance
+
+    // Function to set today's date as the default in the date picker
+    function setDefaultDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+      const day = String(today.getDate()).padStart(2, '0');
+      const formattedToday = `${year}-${month}-${day}`;
+      
+      // Set the value of the date picker to today's date
+      document.getElementById('selectedDate').value = formattedToday;
+
+      // Trigger data fetch for today
+      fetchDataForDate();
+    }
+
+    // Function to auto resize the textarea based on its content
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';  // Reset height to auto first
+      textarea.style.height = textarea.scrollHeight + 'px';  // Set height based on scroll height
+    }
+
+    // Function to populate table
+    function populateTable(data, remarks) {
+      const tableBody = document.getElementById("tableBody");
+      tableBody.innerHTML = '';  // Clear the table
+      let totalQtyPallet = 0;  // Initialize total QTY PALLET
+
+      data.forEach(item => {
+        const diff = parseFloat(item[3]) - parseFloat(item[4]);  // Calculate DIFF SO-SAP
+        let qtyPalletNumber = parseFloat(item[3]) / parseFloat(item[2]);  // Calculate QTY PALLET
+
+        // Custom rounding rule
+        qtyPalletNumber = customRound(qtyPalletNumber);
+        totalQtyPallet += qtyPalletNumber;  // Add to total QTY PALLET
+
+        let diffClass = 'zero';
+        if (diff > 0) diffClass = 'positive';
+        else if (diff < 0) diffClass = 'negative';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item[0]}</td>
+          <td>${item[1]}</td>
+          <td>${item[2]}</td>
+          <td class="qty-so">${item[3]}</td> <!-- QTY SO with class for copy function -->
+          <td>${item[4]}</td> <!-- QTY SAP is displayed as plain text -->
+          <td class="diff-cell ${diffClass}">${diff}</td>
+          <td>
+            <div class="qty-pallet">
+              <div class="number">${qtyPalletNumber}</div>
+              <div class="unit">Pallet</div>
+            </div>
+          </td> <!-- QTY PALLET is displayed with number aligned left and unit aligned right -->
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Round total QTY PALLET before displaying in the footer
+      const roundedTotalQtyPallet = customRound(totalQtyPallet);
+      document.getElementById('totalQtyPallet').textContent = roundedTotalQtyPallet;
+
+      // Update remarks in the textarea and resize it dynamically
+      const remarksTextarea = document.getElementById('remarksTextarea');
+      remarksTextarea.value = remarks || '';  // Display remarks or empty if not available
+      autoResizeTextarea(remarksTextarea);  // Adjust textarea size based on its content
+
+      hideLoadingSpinner(); // Hide the loading spinner after data is populated
+    }
+
+    // Function to apply custom rounding rule
+    function customRound(number) {
+      const decimalPart = number % 1;  // Get the fractional part of the number
+      if (decimalPart <= 0.4) {
+        return Math.floor(number);  // Round down
+      } else {
+        return Math.ceil(number);  // Round up
+      }
+    }
+
+    // Function to auto resize the textarea whenever it changes
+    document.getElementById('remarksTextarea').addEventListener('input', function() {
+      autoResizeTextarea(this);
+    });
+
+    function fetchDataForDate() {
+      showLoadingSpinner(); // Show the loading spinner before fetching data
+
+      const selectedDate = document.getElementById('selectedDate').value.split('-').reverse().join('/');  // Ambil tanggal yang dipilih
+      const selectedSession = document.getElementById('selectedSession').value;  // Ambil sesi yang dipilih
+
+      google.script.run.withSuccessHandler(function(result) {
+        const data = result.data;  // Data SO untuk tanggal dan sesi
+        const remarks = result.remarks;  // Remarks untuk tanggal dan sesi
+        populateTable(data, remarks);  // Populate tabel dan remarks
+      }).getDataSOWithRemarksByDate(selectedDate, selectedSession);  // Kirim tanggal dan sesi ke backend
+    }
+
+    // Listener untuk perubahan tanggal
+    document.getElementById('selectedDate').addEventListener('change', function() {
+      // Set sesi ke morning setiap kali tanggal diubah
+      document.getElementById('selectedSession').value = 'morning';
+      fetchDataForDate();  // Langsung jalankan filter data berdasarkan tanggal dan sesi pagi
+    });
+
+    // Listener untuk perubahan sesi
+    document.getElementById('selectedSession').addEventListener('change', fetchDataForDate);
+
+    // Function to copy all QTY SO values
+    function copyQTYSO() {
+      const qtySOElements = document.querySelectorAll('.qty-so');  // Get all elements with class 'qty-so'
+      const qtySOValues = Array.from(qtySOElements).map(el => el.textContent);  // Extract text content
+      const textToCopy = qtySOValues.join('\n');  // Join values with new lines
+
+      // Create a temporary textarea to copy the text
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = textToCopy;
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempTextArea);
+      
+      showCopyAlert();  // Show success alert after copying
+    }
+
+    // Function to show the success alert
+    function showCopyAlert() {
+      const alertElement = document.getElementById('copyAlert');
+      alertElement.style.display = 'block';  // Show the alert
+      setTimeout(() => {
+        alertElement.style.display = 'none';  // Hide the alert after 2 seconds
+      }, 2000);  // 2000 ms = 2 seconds
+    }
+
+    // Function to show the loading spinner using Lottie
+    function showLoadingSpinner() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'flex';  // Show the loading overlay
+
+      // Initialize Lottie animation if not already initialized
+      if (!loadingAnimation) {
+        loadingAnimation = lottie.loadAnimation({
+          container: document.getElementById('loadingAnimation'), // the dom element
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'https://lottie.host/85c0d91b-5638-41f4-98c5-2fbe1ca9d681/Q6fbzO4HyH.json' // URL to your Data Loading Lottie animation JSON
+        });
+      } else {
+        loadingAnimation.play();
+      }
+    }
+
+    // Function to hide the loading spinner
+    function hideLoadingSpinner() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'none';  // Hide the loading overlay
+
+      if (loadingAnimation) {
+        loadingAnimation.stop();
+      }
+    }
+
+    // Set the default date to today when the page loads
+    window.onload = function() {
+      setDefaultDate();
+    };
+
+
+    // Navigasi ke halaman lain
+    function navigateTo(page) {
+      // Show a loading spinner
+      insertLoadingSpinner();  // Dynamically insert spinner
+      
+      google.script.run.withSuccessHandler(function(html) {
+        // Replace entire document content
+        document.open();
+        document.write(html);
+        document.close();
+      }).loadPage(page);
+    }
+
+    // Function to insert loading spinner into the body
+    function insertLoadingSpinner() {
+      const spinnerHtml = `
+        <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-secondary" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-danger" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-warning" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-info" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-light" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-dark" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+        </div>
+      `;
+
+      // Append the spinner HTML to the body
+      document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+    }
+
+    // Function to remove the loading spinner after page load
+    function removeLoadingSpinner() {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.remove(); // Remove spinner after the page has loaded
+      }
+    }
+  </script>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
