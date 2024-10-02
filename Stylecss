@@ -1,0 +1,151 @@
+  <style>
+
+    .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: Left;
+            flex-grow: 1;
+        }
+
+
+    /* Ensuring the header text is bold */
+    h1.text-center {
+      font-weight: bold;
+      /* Makes the text bold */
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .modal-content {
+      padding: 20px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+    }
+
+    .modal-header {
+      border-bottom: none;
+    }
+
+
+    .modal-footer {
+      border-top: none;
+    }
+
+    .center-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .center-buttons .btn {
+      flex: 1 1 auto;
+      /* Allow buttons to grow and shrink equally */
+      min-width: 150px;
+      /* Set a minimum width for all buttons */
+      max-width: 150px;
+      /* Set a maximum width for all buttons */
+    }
+
+    .center-text {
+      text-align: center;
+    }
+
+    /* Center the modal */
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - 1rem);
+    }
+
+    .modal-content {
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .clock {
+      font-weight: bold;
+      /* Makes the text bold */
+      font-size: 18px;
+      font-weight: normal;
+      /* Optional: adjust the font size as needed */
+      color: #333;
+      /* Optional: set the color of the text */
+      margin-right: 20px;
+    }
+
+    .header-logo {
+    height: 50px; /* Adjust height as needed */
+    margin-right: 10px; /* Space between logo and the title */
+    }
+
+    /* Custom style to center the table */
+    .table-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      /* Adjust margin as needed */
+    }
+
+    .table {
+      width: 100%;
+      /* Ensure table takes up full width of container */
+      max-width: 100%;
+      /* Set a max width for better readability */
+    }
+
+    /* Center text in table header cells */
+    th {
+      text-align: center;
+      background-color: #007bff;
+      /* Blue background color */
+      color: white;
+      /* White text color for contrast */
+    }
+
+    #confirmationModal {
+    z-index: 1050 !important; /* Adjust the value as needed */
+    }
+    
+    .modal-backdrop.show {
+    z-index: 1049; /* Ensure backdrop is behind the modal */
+    }
+
+    /* Smooth transition hover */
+    .btn-custom:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+
+    
+
+  </style>
