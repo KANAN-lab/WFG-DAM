@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- Include External Files -->
+    <?!= include('Library'); ?>
+    <?!= include('Stylecss'); ?>
+    <!-- Include Animate.css for additional animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Include Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Include Chart.js for additional charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Hapus baris berikut karena tidak lagi diperlukan -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script> -->
+    <div class="header-container">
+      <img id="myImage" alt="Logo" class="header-logo" style="height: 50px; margin-right: 10px;">
+      <!-- Logo -->
+      <div class="header-title">WFG - HandHeld System</div>
+      <div id="clock" class="clock"></div>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    </div>
+    <style>
+      /* Optional: Add some padding to the pagination */
+      .pagination {
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      /* Add spacing between pagination and existing buttons */
+      .pagination-container {
+        margin-top: 30px;
+        /* Adjust as needed for desired spacing */
+      }
+
+      /* Ensure pagination buttons are equally sized and proportional */
+      .pagination .page-item .page-link {
+        width: 50px;
+        /* Fixed width for equal sizing */
+        text-align: center;
+        transition: transform 0.3s, background-color 0.3s, color 0.3s;
+        /* Smooth hover effect */
+      }
+
+      .pagination .page-item .page-link:hover {
+        transform: scale(1.1);
+        background-color: #0056b3;
+        color: #fff;
+      }
+
+      /* Active Page Link */
+      .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+      }
+
+      /* Page Transition Animations */
+      .page {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        /* Positioning for smooth overlay */
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+      }
+
+      .page.active {
+        opacity: 1;
+        position: relative;
+      }
+
+      /* Spinner Enhancements */
+      #loadingSpinner {
+        display: none;
+        /* Initially hidden */
+        /* Existing styles */
+      }
+
+      /* Show spinner when active */
+      #loadingSpinner.active {
+        display: block;
+      }
+
+      /* Additional Design Enhancements */
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f1f3f5;
+        /* Light background for better contrast */
+      }
+
+      .header-container {
+        background-color: #f8f9fa;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .header-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #343a40;
+      }
+
+      .btn-custom {
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .btn-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Table Enhancements */
+      .table-container {
+        overflow-x: auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .table th,
+      .table td {
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      /* Alert Box Enhancements */
+      .alert {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Custom styling for summary items */
+      .summary-item {
+        padding: 10px 15px;
+        /* Add padding for spacing */
+        background-color: transparent;
+        /* Remove background color */
+        /* Optional: Add text styling */
+        font-size: 1rem;
+        color: #343a40;
+        /* Dark gray color for text */
+      }
+
+      /* Responsive adjustments if needed */
+      @media (max-width: 576px) {
+        .pagination .page-item .page-link {
+          width: 40px;
+          /* Smaller width on small screens */
+        }
+      }
+
+      /* Chart Container Enhancements */
+      .chart-container {
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        height: 400px;
+        /* Ensure consistent height */
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .header-title {
+        font-size: 32px;
+        font-weight: bold;
+        text-align: Left;
+        flex-grow: 1;
+      }
+
+      /* Ensuring the header text is bold */
+      h1.text-center {
+        font-weight: bold;
+        /* Makes the text bold */
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      .form-group label {
+        font-weight: bold;
+      }
+
+      .center-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .center-buttons .btn {
+        flex: 1 1 auto;
+        /* Allow buttons to grow and shrink equally */
+        min-width: 150px;
+        /* Set a minimum width for all buttons */
+        max-width: 180px;
+        /* Set a maximum width for all buttons */
+      }
+
+      .center-text {
+        text-align: center;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .clock {
+        font-weight: bold;
+        /* Makes the text bold */
+        font-size: 18px;
+        font-weight: normal;
+        /* Optional: adjust the font size as needed */
+        color: #333;
+        /* Optional: set the color of the text */
+        margin-right: 20px;
+      }
+
+      .header-logo {
+        height: 50px;
+        /* Adjust height as needed */
+        margin-right: 10px;
+        /* Space between logo and the title */
+      }
+
+      /* Custom style to center the table */
+      .table-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        /* Adjust margin as needed */
+      }
+
+      .table {
+        width: 100%;
+        /* Ensure table takes up full width of container */
+        max-width: 100%;
+        /* Set a max width for better readability */
+      }
+
+      /* Center text in table header cells */
+      th {
+        text-align: center;
+        background-color: #007bff;
+        /* Blue background color */
+        color: white;
+        /* White text color for contrast */
+      }
+
+      /* Smooth transition hover */
+      .btn-custom:hover {
+        transform: scale(1.05);
+        transition: all 0.3s ease-in-out;
+      }
+
+      /* New Table Styling: Green Header */
+      .table-new th {
+        background-color: #007bff;
+        /* Blue background color */
+        color: white;
+        /* White text */
+      }
+
+      /* Optional: Add some spacing before the new table */
+      .new-table-container {
+        margin-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Page 1: Table and Summary -->
+    <div id="page1" class="page active animate__animated animate__fadeIn">
+      <!-- Tabel Baru ditempatkan di sini menggantikan tabel lama -->
+      <div class="table-container">
+        <table id="newStockTable" class="table table-new table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>MID</th>
+              <th>NAME PRODUCT</th>
+              <th>ACTUAL STOCK / PALLET</th>
+              <th>ACTUAL STOCK / BOX</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data akan dimuat secara dinamis di sini -->
+          </tbody>
+        </table>
+      </div>
+      <!-- Summary Section -->
+      <div class="row mt-3 justify-content-center">
+        <div class="d-flex justify-content-between align-items-center" style="gap: 200px;">
+          <div class="summary-item">
+            <strong>Total Pallets :</strong>
+            <span id="totalPallets">0 Pallet</span>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center" style="gap: 200px;">
+          <div class="summary-item">
+            <strong>Total Boxes :</strong>
+            <span id="totalBoxes">0 Box</span>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center" style="gap: 200px;">
+          <div class="summary-item">
+            <strong>Status WHU :</strong>
+            <span id="StatusWFG">Kosong</span>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center" style="gap: 200px;">
+          <div class="summary-item">
+            <strong>WHU :</strong>
+            <span id="StorageCapacity">0%</span>
+          </div>
+        </div>
+      </div>
+      <!-- Centered Buttons -->
+      <div class="center-buttons" style="margin-top: 20px;">
+        <button class="btn btn-success btn-custom" onclick="navigateTo('InboundFormFullPallet')"><i class="fa-solid fa-right-to-bracket"></i> Inbound</button>
+        <button class="btn btn-primary btn-custom" onclick="navigateTo('HistoryView')"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+        <button class="btn btn-warning btn-custom" onclick="navigateTo('RTLS')"><i class="fa-solid fa-magnifying-glass-location"></i> Maps</button>
+        <button class="btn btn-dark btn-custom" onclick="navigateTo('SoView')"><i class="fa-solid fa-clipboard-check"></i> Stock Opname</button>
+        <button class="btn btn-info btn-custom" onclick="navigateTo('Settings')"><i class="fa-solid fa-gears"></i> Settings</button>
+        <button class="btn btn-danger btn-custom" onclick="openFormOut()"><i class="fa-solid fa-right-from-bracket"></i> Outbound</button>
+      </div>
+    </div>
+    <!-- Page 2: Charts -->
+    <div id="page2" class="page animate__animated animate__fadeOut" style="display: none;">
+      <!-- Chart Section -->
+      <!-- Removed Pie Chart and Bar Chart -->
+      <!-- Horizontal Bar Chart and Doughnut Chart Container using Chart.js -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="horizontalBarChart" style="width: 100%; height: 100%;"></canvas>
+            <!-- Horizontal Bar Chart Canvas -->
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="chart-container">
+            <canvas id="doughnutChart" style="width: 100%; height: 100%;"></canvas>
+            <!-- Doughnut Chart Canvas -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation" class="pagination-container">
+      <ul class="pagination">
+        <li class="page-item active" id="page1-link">
+          <a class="page-link" href="#" onclick="showPage(1)">1</a>
+        </li>
+        <li class="page-item" id="page2-link">
+          <a class="page-link" href="#" onclick="showPage(2)">2</a>
+        </li>
+      </ul>
+    </nav>
+    <!-- JavaScript Section -->
+    <script>
+      // Helper function to format numbers with thousands separator and decimal comma
+      function formatNumber(num, isDecimal = false) {
+        // Convert to fixed decimal with two places if isDecimal is true
+        const fixedNum = isDecimal ? num.toFixed(2).replace('.', ',') : num.toString(); // Replace decimal point with a comma if needed
+        const parts = fixedNum.split(','); // Split into integer and decimal parts
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Add period as thousands separator
+        return parts.join(','); // Join integer and decimal parts
+      }
+      // Update Functions for Summary
+      function updateSummary(data) {
+        let totalPallets = 0;
+        let totalBoxes = 0;
+        data.forEach(row => {
+          const pallets = parseInt(row[2], 10) || 0;
+          const boxes = parseInt(row[3], 10) || 0;
+          totalPallets += pallets;
+          totalBoxes += boxes;
+        });
+        document.getElementById('totalPallets').textContent = formatNumber(totalPallets) + ' Pallet';
+        document.getElementById('totalBoxes').textContent = formatNumber(totalBoxes) + ' Box';
+        // Update Status WHU
+        const maxCapacity = 3300; // Maximum capacity in pallets
+        let statusWFG;
+        if (totalPallets === 0) {
+          statusWFG = 'Empty';
+        } else if (totalPallets > 0 && totalPallets < maxCapacity) {
+          statusWFG = 'Normal';
+        } else if (totalPallets === maxCapacity) {
+          statusWFG = 'Full';
+        } else {
+          statusWFG = 'Over Quantity';
+        }
+        document.getElementById('StatusWFG').textContent = statusWFG;
+        // Update WHU Percentage (calculates without capping)
+        const whuPercentage = ((totalPallets / maxCapacity) * 100);
+        document.getElementById('StorageCapacity').textContent = formatNumber(whuPercentage, true) + '%'; // Using decimal formatting for percentage
+      }
+      // Function Clock
+      function updateClock() {
+        const now = new Date();
+        // Get the day of the week
+        const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"];
+        const day = days[now.getDay()];
+        // Get the date
+        const date = now.getDate();
+        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+        // Get the time
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        // Format the full time string
+        const timeString = `${hours}:${minutes}:${seconds}`;
+        const fullDateString = `${day}, ${date} ${month} ${year} - ${timeString}`;
+        // Update the clock element
+        document.getElementById('clock').textContent = fullDateString;
+      }
+      // Update the clock every second
+      setInterval(updateClock, 1000);
+      // Initialize the clock display
+      updateClock();
+      // Function to fetch and update the new table data
+      function fetchNewStockData() {
+        google.script.run.withSuccessHandler(updateNewTable).getNewStockData();
+      }
+      // Function to update the new table with data
+      function updateNewTable(data) {
+        const tbody = document.querySelector("#newStockTable tbody");
+        tbody.innerHTML = ""; // Clear previous data
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          row.forEach((cell, index) => {
+            const td = document.createElement("td");
+            // Append unit based on column index and make the number bold
+            if (index === 2 && !isNaN(cell)) { // ACTUAL STOCK / PALLET
+              td.innerHTML = `
+							<strong>${cell.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong> Pallet`; // Format number with dots and bold it
+            } else if (index === 3 && !isNaN(cell)) { // ACTUAL STOCK / BOX
+              td.innerHTML = `
+							<strong>${cell.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong> Box`; // Format number with dots and bold it
+            } else {
+              td.textContent = cell; // Use textContent for other cells
+            }
+            td.classList.add("center-text"); // Add class to center text
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        // Update Summary
+        updateSummary(data);
+      }
+      // Auto-refresh the new table every 1 second
+      setInterval(fetchNewStockData, 1000);
+      // Initial fetch to populate the new table
+      fetchNewStockData();
+
+      function setImage() {
+        google.script.run.withSuccessHandler(function(base64Image) {
+          document.getElementById('myImage').src = base64Image;
+        }).getBase64Image();
+      }
+      setImage();
+      // Navigasi ke halaman lain
+      function navigateTo(page) {
+        // Show a loading spinner
+        insertLoadingSpinner(); // Dynamically insert spinner
+        google.script.run.withSuccessHandler(function(html) {
+          // Replace entire document content
+          document.open();
+          document.write(html);
+          document.close();
+        }).loadPage(page);
+      }
+      // Function to insert loading spinner into the body
+      function insertLoadingSpinner() {
+        const spinnerHtml = `
+        
+          									
+							<div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+								<div class="spinner-grow text-primary" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-secondary" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-success" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-danger" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-warning" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-info" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-light" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+								<div class="spinner-grow text-dark" role="status">
+									<span class="visually-hidden"></span>
+								</div>
+							</div>
+        `;
+        // Append the spinner HTML to the body
+        document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+      }
+      // Function to remove the loading spinner after page load
+      function removeLoadingSpinner() {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) {
+          spinner.remove(); // Remove spinner after the page has loaded
+        }
+      }
+    </script>
+    <!-- Pagination JavaScript -->
+    <script>
+      // Function to show the selected page and hide others with animations
+      function showPage(pageNumber) {
+        const pages = document.querySelectorAll('.page');
+        const pageLinks = document.querySelectorAll('.pagination .page-item');
+        pages.forEach((page, index) => {
+          if (index + 1 === pageNumber) {
+            page.classList.add('active', 'animate__animated', 'animate__fadeIn');
+            page.classList.remove('animate__fadeOut');
+            page.style.display = 'block';
+          } else {
+            if (page.classList.contains('active')) {
+              page.classList.remove('active', 'animate__fadeIn');
+              page.classList.add('animate__fadeOut');
+              // Listen for animation end to hide the page
+              page.addEventListener('animationend', () => {
+                if (!page.classList.contains('active')) {
+                  page.style.display = 'none';
+                  page.classList.remove('animate__fadeOut');
+                }
+              }, {
+                once: true
+              });
+            }
+          }
+        });
+        // Update active pagination link
+        pageLinks.forEach((link, index) => {
+          if (index + 1 === pageNumber) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+        // If navigating to page 2, draw the Chart.js horizontal bar chart and Doughnut chart
+        if (pageNumber === 2) {
+          drawChartJSHorizontalBarChart();
+          drawChartJSDoughnutChart();
+        }
+        // Remove the loading spinner after the page has been displayed
+        removeLoadingSpinner();
+      }
+      // Initialize to show Page 1 on load with animation
+      document.addEventListener('DOMContentLoaded', function() {
+        showPage(1);
+      });
+      // Function to draw Chart.js Horizontal Bar Chart
+      function drawChartJSHorizontalBarChart() {
+        // Check if the chart already exists to prevent duplication
+        if (window.horizontalBarChartInstance) {
+          window.horizontalBarChartInstance.destroy();
+        }
+        // Define Product Names and corresponding colors as per PERINTAH 10
+        const productNames = ["L1", "M1", "XL1", "L28", "M32", "XL26", "L8", "XL7", "L11", "M11", "XL11"];
+        const colors = ["rgba(255, 99, 132, 1)", // Red
+          "rgba(54, 162, 235, 1)", // Blue
+          "rgba(255, 206, 86, 1)", // Yellow
+          "rgba(75, 192, 192, 1)", // Teal
+          "rgba(153, 102, 255, 1)", // Purple
+          "rgba(255, 159, 64, 1)", // Orange
+          "rgba(199, 199, 199, 1)", // Grey
+          "rgba(83, 102, 255, 1)", // Indigo
+          "rgba(23, 206, 86, 1)", // Green
+          "rgba(200, 192, 132, 1)", // Brownish
+          "rgba(199, 100, 64, 1)", // Another Brown
+        ];
+        // Extract data from the newStockTable
+        const table = document.getElementById('newStockTable');
+        const rows = table.querySelectorAll('tbody tr');
+        const labels = [];
+        const data = [];
+        const backgroundColors = [];
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 4) {
+            const productName = cells[1].textContent.trim(); // NAME PRODUCT
+            const stockBoxesText = cells[3].textContent.trim(); // ACTUAL STOCK / BOX with unit
+            const stockBoxes = parseStockValue(stockBoxesText); // Use helper function
+            labels.push(productName);
+            data.push(stockBoxes);
+            // Find the index of the product name in the productNames array
+            const colorIndex = productNames.indexOf(productName);
+            if (colorIndex !== -1) {
+              backgroundColors.push(colors[colorIndex]);
+            } else {
+              // Default color if product name is not found
+              backgroundColors.push('rgba(75, 192, 192, 0.6)');
+            }
+          }
+        });
+        // Get the context of the canvas element for Chart.js
+        const ctx = document.getElementById('horizontalBarChart').getContext('2d');
+        // Create the horizontal bar chart
+        window.horizontalBarChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Actual Stock / Box',
+              data: data,
+              backgroundColor: backgroundColors,
+              borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+              borderWidth: 1
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false, // Allow chart to fill container
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Stock (Boxes)',
+                  font: {
+                    weight: 'bold',
+                    size: 14
+                  },
+                  color: '#000000' // Dark black color
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Product Name',
+                  font: {
+                    weight: 'bold',
+                    size: 14
+                  },
+                  color: '#000000' // Dark black color
+                }
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: 'Actual Stock per Product (Boxes) - Horizontal Bar Chart',
+                font: {
+                  weight: 'bold',
+                  size: 16
+                },
+                color: '#000000' // Dark black color
+              },
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+      }
+      // Function to draw Chart.js Doughnut Chart
+      function drawChartJSDoughnutChart() {
+        // Check if the chart already exists to prevent duplication
+        if (window.doughnutChartInstance) {
+          window.doughnutChartInstance.destroy();
+        }
+        // Define Product Names and corresponding colors as per PERINTAH 10
+        const productNames = ["L1", "M1", "XL1", "L28", "M32", "XL26", "L8", "XL7", "L11", "M11", "XL11"];
+        const colors = ["rgba(255, 99, 132, 1)", // Red
+          "rgba(54, 162, 235, 1)", // Blue
+          "rgba(255, 206, 86, 1)", // Yellow
+          "rgba(75, 192, 192, 1)", // Teal
+          "rgba(153, 102, 255, 1)", // Purple
+          "rgba(255, 159, 64, 1)", // Orange
+          "rgba(199, 199, 199, 1)", // Grey
+          "rgba(83, 102, 255, 1)", // Indigo
+          "rgba(23, 206, 86, 1)", // Green
+          "rgba(200, 192, 132, 1)", // Brownish
+          "rgba(199, 100, 64, 1)", // Another Brown
+        ];
+        // Extract data from the newStockTable
+        const table = document.getElementById('newStockTable');
+        const rows = table.querySelectorAll('tbody tr');
+        const labels = [];
+        const data = [];
+        const backgroundColors = [];
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 4) {
+            const productName = cells[1].textContent.trim(); // NAME PRODUCT
+            const stockPalletsText = cells[2].textContent.trim(); // ACTUAL STOCK / PALLET with unit
+            // Handle different decimal formats (comma vs. period)
+            const stockPallets = parseStockValue(stockPalletsText); // Use helper function
+            labels.push(productName);
+            data.push(stockPallets);
+            // Find the index of the product name in the productNames array
+            const colorIndex = productNames.indexOf(productName);
+            if (colorIndex !== -1) {
+              backgroundColors.push(colors[colorIndex]);
+            } else {
+              // Default color if product name is not found
+              backgroundColors.push('rgba(75, 192, 192, 0.6)');
+            }
+          }
+        });
+        // Get the context of the canvas element for Chart.js
+        const ctx = document.getElementById('doughnutChart').getContext('2d');
+        // Create the doughnut chart
+        window.doughnutChartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Actual Stock / Pallet',
+              data: data,
+              backgroundColor: backgroundColors,
+              borderColor: '#ffffff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Actual Stock per Product (Pallets) - Doughnut Chart',
+                font: {
+                  weight: 'bold',
+                  size: 16
+                },
+                color: '#000000' // Dark black color
+              },
+              legend: {
+                position: 'right'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    const sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const percentage = ((value / sum) * 100).toFixed(2) + '%';
+                    return `${label}: ${value} (${percentage})`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      // Helper function to parse stock values
+      function parseStockValue(value) {
+        // Check if the value uses a comma or period and parse accordingly
+        if (value.includes(',')) {
+          return parseFloat(value.replace(/\./g, '').replace(',', '.')); // Handle European format
+        } else {
+          return parseFloat(value.replace(/\./g, '').replace(' Box', '').replace(' Pallet', '')); // Handle standard format
+        }
+      }
+    </script>
+  </body>
+</html>
