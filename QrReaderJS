@@ -1,0 +1,128 @@
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+
+<script>
+  function docReady(fn) {
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        setTimeout(fn, 1);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+  } 
+
+  docReady(function() {
+    var resultContainer = document.getElementById('qr-reader-results');
+    var countResults = 0;
+    var scanMade = false; // Flag to track if a scan has been made
+
+    var productMapping = {
+      /*"1050051": "L1",
+      "1050046": "M1",
+      "1050056": "XL1",
+      "50055": "L28",
+      "50050": "M32",
+      "50060": "XL26",
+      "50052": "L8",
+      "50057": "XL7",
+      */
+      "1150051": "L11",
+      "1150046": "M11",
+      "1150056": "XL11",
+      
+      "18998866500514": "L1",
+      "18998866500460": "M1",
+      "18998866500569": "XL1",
+      "18998866500552": "L28",
+      "18998866500507": "M32",
+      "18998866500606": "XL26",
+      "18998866500521": "L8",
+      "18998866500576": "XL7",
+
+      "000000": "Lane Kosong"
+    };
+
+    var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {
+      fps: 10,
+      qrbox: 250,
+      facingMode: "environment"
+    });
+
+function onScanSuccess(decodedText, decodedResult) {
+    if (scanMade) return; // Prevent scanning if a scan has already been made
+
+    scanMade = true; // Set the flag to true
+    console.log(`Scan result = ${decodedText}`, decodedResult);
+
+    // Check if the scanned code exists in the productMapping
+    if (productMapping.hasOwnProperty(decodedText)) {
+        // Assign the scanned code to the first available MID field
+        for (let i = 1; i <= 25; i++) {
+            const midField = document.getElementById(`mid${i}`);
+            const nameField = document.getElementById(`name${i}`);
+            const quantityField = document.getElementById(`quantity${i}`);
+            if (midField && !midField.value) {
+                midField.value = decodedText;
+                if (nameField) {
+                    nameField.value = productMapping[decodedText];
+                }
+                if (decodedText === "000000") { // Check for "Lane Kosong"
+                    quantityField.value = 0; // Set quantity to 0
+                    quantityField.readOnly = true; // Make quantity field read-only
+                } else {
+                    quantityField.readOnly = false; // Ensure field is editable
+                }
+                break;
+            }
+        }
+    }
+
+    // Set a timeout to re-enable scanning after a delay
+    setTimeout(() => {
+        scanMade = false; // Reset the flag
+    }, 3000); // Delay in milliseconds (e.g., 3000ms = 3 seconds)
+}
+
+
+    function onScanError(qrCodeError) {
+      // Optional error callback
+    }
+
+    html5QrcodeScanner.render(onScanSuccess, onScanError);
+  });
+
+  function validateAndNextForm(formNumber) {
+    const inputs = document.querySelectorAll(`#form${formNumber} .form-control`);
+    let allValid = true;
+
+    inputs.forEach(input => {
+      if (!input.value.trim()) {
+        input.classList.add('is-invalid');
+        allValid = false;
+      } else {
+        input.classList.remove('is-invalid');
+      }
+    });
+
+    if (allValid && formNumber < totalForms) {
+      nextForm(formNumber);
+    } else if (allValid && formNumber === totalForms) {
+      alert('Form submitted!');
+    }
+  }
+
+  function nextForm(currentForm) {
+    document.getElementById(`form${currentForm}`).classList.remove('active');
+    document.getElementById(`form${currentForm + 1}`).classList.add('active');
+  }
+
+  function previousForm(currentForm) {
+    document.getElementById(`form${currentForm}`).classList.remove('active');
+    document.getElementById(`form${currentForm - 1}`).classList.add('active');
+  }
+
+  function rescan(formNumber) {
+    document.getElementById(`mid${formNumber}`).value = ''; // Clear MID field
+    document.getElementById(`name${formNumber}`).value = ''; // Clear Name Product field
+    document.getElementById(`quantity${formNumber}`).value = ''; // Clear Quantity field
+    alert(`Please rescan for LANE ${formNumber}B`);
+  }
+</script>
