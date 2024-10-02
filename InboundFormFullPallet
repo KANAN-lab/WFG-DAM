@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <base target="_top" />
+        <title>Inbound Full Pallet</title>
+        <!-- External CSS Libraries -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <!-- SweetAlert2 for Alert Messages -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Internal CSS Styles -->
+        <style>
+            /* General Styles */
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                max-width: 1080px;
+                max-height: 1920px;
+                margin: auto;
+            }
+            .container {
+                background-color: #fff;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                width: 90%;
+                max-width: 800px;
+                text-align: center;
+                box-sizing: border-box;
+            }
+            h1 {
+                color: #333;
+                margin-bottom: 20px;
+            }
+            /* Button Container */
+            .button-container {
+                margin-top: 20px;
+            }
+            .zone-button {
+                background-color: #ccc; /* Default Grey */
+                border: none;
+                color: white;
+                padding: 15px 25px;
+                margin: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                cursor: pointer;
+                border-radius: 8px;
+                transition: background-color 0.3s, transform 0.3s;
+            }
+            .zone-button.active {
+                background-color: #4caf50; /* Green for Active */
+            }
+            .zone-button.inactive {
+                background-color: #9e9e9e; /* Grey for Inactive */
+            }
+            .zone-button:hover {
+                transform: scale(1.05);
+            }
+            /* Form Section */
+            .form-section {
+                margin-top: 30px;
+                display: none; /* Hidden initially */
+                animation: fadeIn 0.5s ease-in-out;
+                padding-bottom: 20px; /* Added padding for spacing */
+            }
+            .form-section.active {
+                display: block;
+            }
+            form label {
+                display: block;
+                margin-top: 15px;
+                text-align: left;
+                color: #333;
+                font-size: 16px;
+            }
+            /* Custom Dropdown Styles */
+            .custom-select-wrapper {
+                position: relative;
+                display: inline-block;
+                width: 100%;
+                margin-top: 5px;
+            }
+            .custom-select {
+                position: relative;
+                display: block;
+                width: 100%;
+                padding: 10px 40px 10px 15px;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                appearance: none;
+                background-color: #fff;
+                cursor: pointer;
+                transition: border-color 0.3s, box-shadow 0.3s;
+            }
+            .custom-select:focus {
+                border-color: #4caf50;
+                box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+                outline: none;
+            }
+            /* Dropdown Arrow */
+            .custom-select-arrow {
+                position: absolute;
+                top: 50%;
+                right: 15px;
+                transform: translateY(-50%);
+                pointer-events: none;
+                color: #888;
+            }
+            /* Invalid Field Styles */
+            .custom-select.invalid {
+                border-color: #ff0000;
+            }
+            /* Toggle Switch Styles */
+            .toggle-switch {
+                display: flex;
+                align-items: center;
+                margin-top: 20px;
+                justify-content: center;
+            }
+            .toggle-switch input[type="checkbox"] {
+                display: none;
+            }
+            .toggle-switch-label {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
+                margin-right: 10px;
+                cursor: pointer;
+                background-color: #ccc;
+                border-radius: 34px;
+                transition: background-color 0.3s;
+            }
+            .toggle-switch-label::after {
+                content: "";
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: 26px;
+                height: 26px;
+                background-color: white;
+                border-radius: 50%;
+                transition: transform 0.3s;
+            }
+            .toggle-switch input[type="checkbox"]:checked + .toggle-switch-label {
+                background-color: #4caf50;
+            }
+            .toggle-switch input[type="checkbox"]:checked + .toggle-switch-label::after {
+                transform: translateX(26px);
+            }
+            .toggle-switch span {
+                font-size: 16px;
+                color: #333;
+            }
+            /* Animated Button Container */
+            .animated-button-container {
+                margin-top: 40px; /* Adjusted spacing */
+                position: relative; /* For stacking buttons */
+                width: 100px; /* Fixed width to accommodate buttons */
+                height: 100px; /* Fixed height to accommodate buttons */
+                margin: 40px auto 0 auto; /* Center the container and add top margin */
+            }
+            /* Circular Animation Styles */
+            .animated-button {
+                position: absolute; /* Stack buttons on top of each other */
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 2px solid #4caf50; /* Default Green Border */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                transition: transform 0.3s, border-color 0.3s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: #fff;
+            }
+            .animated-button.clicked-border {
+                border-color: #ff0000; /* Red Border on Click */
+            }
+            .animated-button:hover {
+                transform: scale(1.05);
+            }
+            /* Hide submitButton initially */
+            #submitButton {
+                display: none;
+            }
+            /* Stopwatch Styles */
+            .stopwatch-container {
+                margin-top: 20px; /* Space between buttons and stopwatch */
+                display: flex;
+                justify-content: center;
+            }
+            .stopwatch {
+                font-size: 24px;
+                color: #333;
+            }
+            /* Unlock Button Styles */
+            .unlock-button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 16px;
+                border: none;
+                background-color: #f44336; /* Red Background */
+                color: white;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s, transform 0.3s;
+            }
+            .unlock-button:hover {
+                background-color: #d32f2f;
+                transform: scale(1.05);
+            }
+            /* Responsive */
+            @media screen and (max-width: 1080px) {
+                .container {
+                    width: 95%;
+                }
+                .animated-button-container {
+                    width: 80px;
+                    height: 80px;
+                    margin-top: 60px; /* Adjusted spacing for smaller screens */
+                }
+                .stopwatch {
+                    font-size: 20px;
+                }
+                form label {
+                    font-size: 14px;
+                }
+                .custom-select {
+                    font-size: 14px;
+                }
+                .toggle-switch span {
+                    font-size: 14px;
+                }
+                .unlock-button {
+                    font-size: 14px;
+                    padding: 8px 16px;
+                }
+            }
+            /* Animation Keyframes */
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+            /* Submit Button Styles */
+            .submit-btn {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 16px;
+                border: none;
+                background-color: #4caf50;
+                color: white;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s, transform 0.3s;
+            }
+            .submit-btn:hover {
+                background-color: #45a049;
+                transform: scale(1.05);
+            }
+            /* Disabled Option Styles */
+            option.disabled-option {
+                color: red;
+                text-decoration: line-through;
+            }
+            progress {
+                height: 20px; /* Adjust height of progress bar */
+                border-radius: 5px;
+                overflow: hidden;
+                transition: background-color 0.3s;
+            }
+            progress[value] {
+                appearance: none; /* Remove default styling */
+            }
+            progress[value]::-webkit-progress-bar {
+                background-color: #eee; /* Background color of progress bar */
+            }
+            progress[value]::-webkit-progress-value {
+                background-color: #4caf50; /* Default color of progress */
+            }
+            .progress-danger {
+                background-color: #f44336; /* Color for low progress */
+            }
+            .progress-warning {
+                background-color: #ff9800; /* Color for medium progress */
+            }
+            .progress-success {
+                background-color: #4caf50; /* Color for high progress */
+            }
+            /* Setting Display Styles */
+            .setting-display {
+                display: block;
+                padding: 10px 15px;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+                text-align: left;
+                margin-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Inbound Full Pallet</h1>
+
+            <!-- Initial Zone Buttons -->
+            <div class="button-container">
+                <button id="zoneAButton" class="zone-button inactive" onclick="openForm('A')">Zona A</button>
+                <button id="zoneBButton" class="zone-button inactive" onclick="openForm('B')">Zona B</button>
+            </div>
+
+            <!-- Form Section -->
+            <div id="formSection" class="form-section">
+                <h2 id="formHeader">Confirm Inbound Full Pallet - Zona</h2>
+                <form id="palletForm">
+                    <!-- Toggle Switch for Multiple MID-Lane -->
+                    <div class="toggle-switch" id="multipleToggleContainer" style="display: none;">
+                        <input type="checkbox" id="multipleToggle" onclick="toggleMultipleMID()" />
+                        <label class="toggle-switch-label" for="multipleToggle"></label>
+                        <span>Use Multiple MID</span>
+                    </div>
+
+<!-- Single MID-Lane Section -->
+<div id="singleMIDSection" class="mid-lane-section">
+    <div class="mid-lane-group">
+        <label for="mid">MID:</label>
+        <div class="custom-select-wrapper">
+            <select id="mid" name="mid" class="custom-select">
+                <option value="">--Pilih MID--</option>
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+        <label for="lane">Lane:</label>
+        <div class="custom-select-wrapper">
+            <select id="lane" name="lane" class="custom-select" onchange="updateProgressBar()">
+                <option value="">--Pilih Lane--</option>
+                <!-- Dynamically populated options will go here -->
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+
+        <div id="progressContainer" style="position: relative; width: 100%; background-color: lightgrey;">
+            <progress id="laneProgress" value="0" max="100" style="width: 100%; display: none;"></progress>
+            <span id="progressText" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+        </div>
+
+        <label for="settingDisplay">Setting:</label>
+        <div id="settingDisplay" class="setting-display">Loading...</div>
+    </div>
+</div>
+
+<!-- Multiple MID-Lane Section -->
+<div id="multipleMIDSection" class="mid-lane-section" style="display: none;">
+    <div class="mid-lane-group">
+        <label for="mid1">MID 1:</label>
+        <div class="custom-select-wrapper">
+            <select id="mid1" name="mid1" class="custom-select">
+                <option value="">--Pilih MID--</option>
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+
+        <label for="lane1">Lane 1:</label>
+        <div class="custom-select-wrapper">
+            <select id="lane1" name="lane1" class="custom-select" onchange="updateMultipleProgressBar(1)">
+                <option value="">--Pilih Lane--</option>
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+
+        <div id="multipleProgressContainer1" style="position: relative; width: 100%; background-color: lightgrey;">
+            <progress id="lane1Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+            <span id="multipleProgressText1" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+        </div>
+    </div>
+
+    <div class="mid-lane-group">
+        <label for="mid2">MID 2:</label>
+        <div class="custom-select-wrapper">
+            <select id="mid2" name="mid2" class="custom-select">
+                <option value="">--Pilih MID--</option>
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+
+        <label for="lane2">Lane 2:</label>
+        <div class="custom-select-wrapper">
+            <select id="lane2" name="lane2" class="custom-select" onchange="updateMultipleProgressBar(2)">
+                <option value="">--Pilih Lane--</option>
+            </select>
+            <i class="fa fa-chevron-down custom-select-arrow"></i>
+        </div>
+
+        <div id="multipleProgressContainer2" style="position: relative; width: 100%; background-color: lightgrey;">
+            <progress id="lane2Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+            <span id="multipleProgressText2" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+        </div>
+    </div>
+</div>
+                </form>
+            </div>
+
+            <!-- Unlock Button (Initially Hidden) -->
+            <button id="unlockButton" class="unlock-button" onclick="unlockSelections()" style="display: none;">
+                Unlock
+            </button>
+
+            <!-- Animated Button and Stopwatch Container -->
+            <div class="animated-button-container">
+                <!-- Initial Play Button (Initially Hidden) -->
+                <div id="playButton" class="animated-button" style="display: none;" onclick="handlePlayButton()">
+                    <lottie-player src="https://lottie.host/769a21ef-ea3a-406a-bb73-892d8c4baccc/ApqeThq8us.json" background="transparent" speed="1" loop autoplay></lottie-player>
+                </div>
+
+                <!-- Submit Button (Initially Hidden) -->
+                <div id="submitButton" class="animated-button" style="display: none;" onclick="submitForm()">
+                    <lottie-player src="https://lottie.host/a977a21e-38b4-491a-ac98-c5f0dd3eda50/wajSZfdbuv.json" background="transparent" speed="1" loop autoplay></lottie-player>
+                </div>
+            </div>
+
+
+            <!-- Stopwatch -->
+            <div class="stopwatch-container" style="display: none;">
+                <div class="stopwatch" id="stopwatch">00:00:00</div>
+            </div>
+
+
+        </div>
+
+        <!-- Lottie Player Script -->
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+        <!-- Internal JavaScript -->
+        <script>
+            // Product Names and Colors for MID Dropdown
+            const productNames = ["L1", "M1", "XL1", "L28", "M32", "XL26", "L8", "XL7", "L11", "M11", "XL11"];
+            const colors = [
+                "rgba(255, 99, 132, 1)", // Red
+                "rgba(54, 162, 235, 1)", // Blue
+                "rgba(255, 206, 86, 1)", // Yellow
+                "rgba(75, 192, 192, 1)", // Teal
+                "rgba(153, 102, 255, 1)", // Purple
+                "rgba(255, 159, 64, 1)", // Orange
+                "rgba(199, 199, 199, 1)", // Grey
+                "rgba(83, 102, 255, 1)", // Indigo
+                "rgba(23, 206, 86, 1)", // Green
+                "rgba(200, 192, 132, 1)", // Brownish
+                "rgba(199, 100, 64, 1)", // Another Brown
+            ];
+
+            let stopwatchInterval;
+            let stopwatchTime = 0;
+
+            // Track Locked Lanes and MIDs
+            let lockedSelections = {};
+
+            // Current Active Zone
+            let activeZone = "";
+
+            // Variable to store the setting value fetched from the server
+            window.currentSetting = null;
+
+            // Populate MID Dropdown with Colored Indicators
+            function populateMID() {
+                const midSelects = document.querySelectorAll('select[id^="mid"]');
+                midSelects.forEach((select) => {
+                    select.innerHTML = '<option value="">--Pilih MID--</option>'; // Reset options
+                    productNames.forEach((name, index) => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        // Using Unicode colored circles as indicators
+                        option.text = `${getColorEmoji(colors[index])} ${name}`;
+                        // Disable if locked
+                        if (lockedSelections[name]) {
+                            option.disabled = true;
+                            option.text = `🔒 ${name}`; // Locked indicator
+                        }
+                        select.appendChild(option);
+                    });
+                });
+            }
+
+            // Function to map RGBA to closest emoji color
+            function getColorEmoji(rgba) {
+                const colorMap = {
+                    "rgba(255, 99, 132, 1)": "🔴", // Red
+                    "rgba(54, 162, 235, 1)": "🔵", // Blue
+                    "rgba(255, 206, 86, 1)": "🟡", // Yellow
+                    "rgba(75, 192, 192, 1)": "🟢", // Teal (approximated with Green)
+                    "rgba(153, 102, 255, 1)": "🟣", // Purple
+                    "rgba(255, 159, 64, 1)": "🟠", // Orange
+                    "rgba(199, 199, 199, 1)": "⚪️", // Grey (approximated with White)
+                    "rgba(83, 102, 255, 1)": "🔵", // Indigo (approximated with Blue)
+                    "rgba(23, 206, 86, 1)": "🟢", // Green
+                    "rgba(200, 192, 132, 1)": "🟤", // Brown
+                    "rgba(199, 100, 64, 1)": "🟤", // Brown
+                };
+                return colorMap[rgba] || "⚪️"; // Default to white if not found
+            }
+
+            // Populate Lane Dropdown Based on Zone and Lane Status
+            function populateLane(zone) {
+                const laneSelects = document.querySelectorAll('select[id^="lane"]');
+
+                laneSelects.forEach((select) => {
+                    select.innerHTML = '<option value="">--Pilih Lane--</option>'; // Reset options
+                });
+
+                // Fetch lane status from backend based on the selected zone
+                google.script.run
+                    .withSuccessHandler(function (laneStatus) {
+                        // Only show lanes that match the active zone
+                        const laneSuffix = zone === "A" ? "A" : "B"; // Set the correct suffix for lanes based on the zone
+                        for (let i = 1; i <= 26; i++) {
+                            const laneId = `${i}${laneSuffix}`;
+                            const laneInfo = laneStatus[laneId]; // Get the full lane information
+                            if (!laneInfo) continue; // Skip if no lane info is found
+
+                            const currentPallet = laneInfo.currentPallet || 0; // Access the currentPallet
+                            const currentMID = laneInfo.currentMID || ""; // Access the currentMID
+                            const currentSetting = laneInfo.currentSetting || 0; // Access the currentSetting
+                            const max = getMaxPallet(laneId);
+
+                            laneSelects.forEach((select) => {
+                                const option = document.createElement("option");
+                                option.value = laneId;
+                                option.text = `${laneId} (${currentPallet}/${max})`; // Display the currentPallet
+
+                                // Disable lanes that already have a MID
+                                if (currentMID) {
+                                    option.disabled = true;
+                                    option.text += ` - Available (MID: ${currentMID})`; // Show which MID is assigned to the lane
+                                } else if (currentPallet >= max) {
+                                    option.disabled = true;
+                                    option.classList.add("disabled-option");
+                                    option.text = `${laneId} (${currentPallet}/${max}) - Penuh`;
+                                } else if (lockedSelections[laneId]) {
+                                    option.disabled = true;
+                                    option.text = `🔒 ${laneId} (${currentPallet}/${max})`;
+                                } else {
+                                    option.style.color = "#000"; // Black for available lanes
+                                }
+
+                                select.appendChild(option);
+                            });
+                        }
+
+                        // After populating lanes, disable selected lanes in other selects
+                        disableSelectedLaneOptions();
+                    })
+                    .getLaneStatus(zone); // Fetch status of lanes based on the current zone
+            }
+
+            // Determine Max Pallet Based on Lane ID
+            function getMaxPallet(laneId) {
+                const specialLanesA = ["11A", "17A", "23A"];
+                const specialLanesB = ["10B", "22B"];
+                if (specialLanesA.includes(laneId) || specialLanesB.includes(laneId)) {
+                    return 30;
+                }
+                return 75;
+            }
+
+            // Open Form Section after Zone is selected
+            function openForm(zone) {
+                activeZone = zone;
+                document.getElementById("formSection").classList.add("active");
+                document.getElementById("formHeader").innerText = `Confirm Inbound Full Pallet - Zona ${zone}`;
+                populateMID();
+                populateLane(zone);
+                document.getElementById("palletForm").dataset.zone = zone;
+
+                // Display the multiple MID toggle
+                document.getElementById("multipleToggleContainer").style.display = "flex";
+
+                // Display elements related after zone selection
+                showElementsAfterZoneSelection();
+
+                // Highlight the selected Zone button
+                setActiveZonaButton(zone);
+
+                // Fetch the setting value for Single MID from the server
+                fetchSettingFromServer();
+            }
+
+            // Fetch the setting value from the server
+            function fetchSettingFromServer() {
+                google.script.run.withSuccessHandler(function (settingValue) {
+                    window.currentSetting = settingValue;
+                    document.getElementById("settingDisplay").innerText = settingValue;
+                }).getSetting();
+            }
+
+            // Set Active Zona Button
+            function setActiveZonaButton(activeZone) {
+                const zoneAButton = document.getElementById("zoneAButton");
+                const zoneBButton = document.getElementById("zoneBButton");
+
+                if (activeZone === "A") {
+                    zoneAButton.classList.add("active");
+                    zoneAButton.classList.remove("inactive");
+                    zoneBButton.classList.remove("active");
+                    zoneBButton.classList.add("inactive");
+                } else if (activeZone === "B") {
+                    zoneBButton.classList.add("active");
+                    zoneBButton.classList.remove("inactive");
+                    zoneAButton.classList.remove("active");
+                    zoneAButton.classList.add("inactive");
+                }
+            }
+
+            // Toggle Multiple MID-Lane
+            function toggleMultipleMID() {
+                const isChecked = document.getElementById("multipleToggle").checked;
+                const singleSection = document.getElementById("singleMIDSection");
+                const multipleSection = document.getElementById("multipleMIDSection");
+
+                if (isChecked) {
+                    multipleSection.style.display = "block";
+                    singleSection.style.display = "none";
+                    // Setting is fixed to 1 for Multiple MID
+                } else {
+                    multipleSection.style.display = "none";
+                    singleSection.style.display = "block";
+                }
+
+                // Reset all selections when toggling
+                resetValidation();
+                clearForm();
+                populateMID();
+                populateLane(activeZone);
+            }
+
+            // Handle Play Button Click
+            function handlePlayButton() {
+                const playButton = document.getElementById("playButton");
+                const submitButton = document.getElementById("submitButton");
+                const zone = activeZone; // Current active zone
+
+                // Reset previous validation
+                resetValidation();
+
+                // Determine if Multiple MID mode is used
+                const isMultiple = document.getElementById("multipleToggle").checked;
+
+                // Validate Input
+                let missingFields = [];
+                let dataEntries = [];
+
+                if (isMultiple) {
+                    const mid1 = document.getElementById("mid1").value;
+                    const lane1 = document.getElementById("lane1").value;
+                    const mid2 = document.getElementById("mid2").value;
+                    const lane2 = document.getElementById("lane2").value;
+
+                    if (!mid1) missingFields.push("MID 1");
+                    if (!lane1) missingFields.push("Lane 1");
+                    if (!mid2) missingFields.push("MID 2");
+                    if (!lane2) missingFields.push("Lane 2");
+                    if (missingFields.length === 0) {
+                        dataEntries.push({ zone, mid: mid1, lane: lane1, setting: "1" });
+                        dataEntries.push({ zone, mid: mid2, lane: lane2, setting: "1" });
+                    }
+                } else {
+                    const mid = document.getElementById("mid").value;
+                    const lane = document.getElementById("lane").value;
+
+                    if (!mid) missingFields.push("MID");
+                    if (!lane) missingFields.push("Lane");
+                    if (!window.currentSetting) missingFields.push("Setting");
+
+                    if (missingFields.length === 0) {
+                        dataEntries.push({ zone, mid, lane, setting: window.currentSetting });
+                    }
+                }
+
+                // If there are missing fields, show an alert
+                if (missingFields.length > 0) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        html: `Field berikut harus diisi: <strong>${missingFields.join(", ")}</strong>.`,
+                    });
+                    return;
+                }
+
+                // Proceed if validation passes
+                playButton.style.pointerEvents = "none"; // Disable play button
+                playButton.classList.add("clicked-border");
+                playButton.style.display = "none"; // Hide play button
+
+                // Show submit button
+                submitButton.style.display = "flex";
+                submitButton.style.pointerEvents = "auto"; // Enable submit button
+
+                startStopwatch(); // Start stopwatch
+                disableForm(true); // Lock form while stopwatch is running
+
+                // Hide unlock button when play button is clicked
+                document.getElementById("unlockButton").style.display = "none";
+
+                // Disable Zone A and Zone B buttons while stopwatch is running
+                document.getElementById("zoneAButton").disabled = true;
+                document.getElementById("zoneBButton").disabled = true;
+            }
+
+            // Function to enable the submit button and disable the play button after submit
+            function submitForm() {
+                const submitButton = document.getElementById("submitButton");
+                const playButton = document.getElementById("playButton");
+
+                // Stop the stopwatch when submit is clicked
+                stopStopwatch();
+
+                submitButton.style.pointerEvents = "none"; // Disable submit button temporarily
+
+                const zone = activeZone;
+                const isMultiple = document.getElementById("multipleToggle").checked;
+                let dataEntries = [];
+                let missingFields = [];
+
+                // Check if data is missing for multiple MID
+                if (isMultiple) {
+                    const mid1 = document.getElementById("mid1").value;
+                    const lane1 = document.getElementById("lane1").value;
+                    const mid2 = document.getElementById("mid2").value;
+                    const lane2 = document.getElementById("lane2").value;
+
+                    if (!mid1) missingFields.push("MID 1");
+                    if (!lane1) missingFields.push("Lane 1");
+                    if (!mid2) missingFields.push("MID 2");
+                    if (!lane2) missingFields.push("Lane 2");
+
+                    dataEntries.push({ zone, mid: mid1, lane: lane1, setting: "1" });
+                    dataEntries.push({ zone, mid: mid2, lane: lane2, setting: "1" });
+                } else {
+                    const mid = document.getElementById("mid").value;
+                    const lane = document.getElementById("lane").value;
+
+                    if (!mid) missingFields.push("MID");
+                    if (!lane) missingFields.push("Lane");
+                    if (!window.currentSetting) missingFields.push("Setting");
+
+                    dataEntries.push({ zone, mid, lane, setting: window.currentSetting });
+                }
+
+                // If there are missing fields, stop the stopwatch and show an error
+                if (missingFields.length > 0) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        html: `Field berikut harus diisi: <strong>${missingFields.join(", ")}</strong>.`,
+                    });
+
+                    stopStopwatch(); // Stop stopwatch if there are missing fields
+                    playButton.style.display = "flex";
+                    playButton.style.pointerEvents = "auto"; // Re-enable play button for retry
+                    submitButton.style.display = "none"; // Hide submit button
+                    return; // Exit the function, preventing further submission
+                }
+
+                let promises = dataEntries.map((entry) => {
+                    return new Promise((resolve, reject) => {
+                        google.script.run
+                            .withSuccessHandler((response) => {
+                                if (response.success) {
+                                    resolve(response);
+                                } else {
+                                    reject(response.message);
+                                }
+                            })
+                            .withFailureHandler((error) => reject(error.message))
+                            .submitDataInboundRawFullPallet(entry);
+                    });
+                });
+
+                Promise.allSettled(promises).then((results) => {
+                    let successEntries = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+                    let failedEntries = results.filter((result) => result.status === "rejected").map((result) => result.reason);
+
+                    if (successEntries.length > 0) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Good Job 🫡",
+                            text: "Data berhasil disubmit!",
+                        }).then(() => {
+                            checkLanesAfterSubmit(successEntries); // Check lanes after successful submission
+                            updateLaneStatus(successEntries); // Update lane status
+
+                            document.getElementById("unlockButton").style.display = "block"; // Show unlock button after success
+                            submitButton.style.display = "none";
+                            playButton.style.display = "flex";
+                            playButton.style.pointerEvents = "auto"; // Enable play button for next round
+                        });
+                    }
+
+                    if (failedEntries.length > 0) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Gagal Submit",
+                            text: `Beberapa entri gagal: ${failedEntries.join(", ")}`,
+                        });
+
+                        // Stop the stopwatch and show the play button again for retry
+                        stopStopwatch(); // Ensure the stopwatch is stopped on error
+                        playButton.style.display = "flex";
+                        playButton.style.pointerEvents = "auto"; // Enable the play button so the process can be retried
+
+                        // Hide the submit button
+                        submitButton.style.display = "none";
+
+                        // Show the unlock button after error
+                        document.getElementById("unlockButton").style.display = "block";
+                    }
+
+                    // Ensure the submit button is enabled again
+                    submitButton.style.pointerEvents = "auto";
+                });
+            }
+
+            // Function to start the stopwatch
+            function startStopwatch() {
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime++;
+                    document.getElementById("stopwatch").innerText = formatTime(stopwatchTime);
+                }, 1000);
+
+                // Lock input on the form while stopwatch is running
+                disableForm(true);
+
+                // Disable Zone A and Zone B buttons while stopwatch is running
+                document.getElementById("zoneAButton").disabled = true;
+                document.getElementById("zoneBButton").disabled = true;
+            }
+
+            // Function to stop the stopwatch
+            function stopStopwatch() {
+                clearInterval(stopwatchInterval);
+
+                // Keep the buttons disabled until unlock is clicked
+                document.getElementById("zoneAButton").disabled = true;
+                document.getElementById("zoneBButton").disabled = true;
+
+                // Keep the form locked until unlock is clicked
+                disableForm(true);
+            }
+
+            // Format Time as HH:MM:SS
+            function formatTime(seconds) {
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+            }
+
+            // Pad Single Digit Numbers with Leading Zero
+            function pad(num) {
+                return num < 10 ? "0" + num : num;
+            }
+
+            function updateLaneStatus(successEntries) {
+                successEntries.forEach((entry) => {
+                    const lane = entry.lane;
+
+                    // Get the latest status from the server for the submitted lane
+                    google.script.run
+                        .withSuccessHandler(function (laneStatus) {
+                            const currentCount = laneStatus[lane] || 0;
+                            const max = getMaxPallet(lane);
+
+                            // Find the dropdown option that corresponds to this lane
+                            const laneSelects = document.querySelectorAll('select[id^="lane"]');
+                            laneSelects.forEach((select) => {
+                                const options = select.options;
+                                for (let i = 0; i < options.length; i++) {
+                                    if (options[i].value === lane) {
+                                        // Update the dropdown text with the latest status
+                                        options[i].text = `${lane} (${currentCount}/${max})`;
+
+                                        // If full, disable the option
+                                        if (currentCount >= max) {
+                                            options[i].disabled = true;
+                                            options[i].classList.add("disabled-option");
+                                            options[i].text = `${lane} (${currentCount}/${max}) - Penuh`;
+                                        }
+                                    }
+                                }
+                            });
+                        })
+                        .getLaneStatus(entry.zone);
+                });
+            }
+
+            // Highlight Invalid Field
+            function highlightField(fieldId) {
+                const field = document.getElementById(fieldId);
+                field.classList.add("invalid");
+            }
+
+            // Reset Validation Highlights
+            function resetValidation() {
+                const fields = ["mid", "lane", "mid1", "lane1", "mid2", "lane2"];
+                fields.forEach((fieldId) => {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.classList.remove("invalid");
+                    }
+                });
+            }
+
+            // Reset Form and UI Elements
+            function resetForm() {
+                document.getElementById("formSection").classList.remove("active");
+                document.getElementById("palletForm").dataset.zone = "";
+
+                // Reset Button Borders
+                const playButton = document.getElementById("playButton");
+                const submitButton = document.getElementById("submitButton");
+                playButton.classList.remove("clicked-border");
+                submitButton.classList.remove("clicked-border");
+
+                // Hide Submit Button and Show Play Button
+                document.getElementById("submitButton").style.display = "none";
+                document.getElementById("playButton").style.display = "flex";
+                // Re-enable Play Button
+                playButton.style.pointerEvents = "auto";
+
+                clearForm();
+                stopwatchTime = 0;
+                document.getElementById("stopwatch").innerText = "00:00:00";
+
+                // Uncheck Multiple MID toggle
+                document.getElementById("multipleToggle").checked = false;
+
+                // Reset Active Zona Buttons
+                resetActiveZonaButtons();
+            }
+
+            // Reset Active Zona Buttons
+            function resetActiveZonaButtons() {
+                const zoneAButton = document.getElementById("zoneAButton");
+                const zoneBButton = document.getElementById("zoneBButton");
+                zoneAButton.classList.remove("active");
+                zoneAButton.classList.add("inactive");
+                zoneBButton.classList.remove("active");
+                zoneBButton.classList.add("inactive");
+            }
+
+            // Clear Form Selections
+            function clearForm() {
+                const isMultiple = document.getElementById("multipleToggle").checked;
+                if (isMultiple) {
+                    document.getElementById("mid1").value = "";
+                    document.getElementById("lane1").value = "";
+                    document.getElementById("mid2").value = "";
+                    document.getElementById("lane2").value = "";
+                } else {
+                    document.getElementById("mid").value = "";
+                    document.getElementById("lane").value = "";
+                    // Clear the setting display if necessary
+                    document.getElementById("settingDisplay").innerText = "Loading...";
+                }
+            }
+
+            // Function to lock or unlock the form
+            function disableForm(disabled) {
+                const formElements = document.querySelectorAll("#palletForm select, #palletForm input");
+                formElements.forEach((element) => {
+                    element.disabled = disabled;
+                });
+            }
+
+            // Disable selected lanes in other selects to prevent duplicate lane selection
+            function disableSelectedLaneOptions() {
+                const isMultiple = document.getElementById("multipleToggle").checked;
+                let selectedLanes = [];
+
+                if (isMultiple) {
+                    const lane1 = document.getElementById("lane1").value;
+                    const lane2 = document.getElementById("lane2").value;
+                    selectedLanes = [lane1, lane2].filter((lane) => lane !== "");
+                } else {
+                    const lane = document.getElementById("lane").value;
+                    if (lane) selectedLanes = [lane];
+                }
+
+                // Get all lane selects
+                const laneSelects = document.querySelectorAll('select[id^="lane"]');
+                laneSelects.forEach((select) => {
+                    const options = select.options;
+                    for (let i = 0; i < options.length; i++) {
+                        if (selectedLanes.includes(options[i].value)) {
+                            if (isMultiple && !options[i].text.startsWith("🚫") && !options[i].text.startsWith("🔒")) {
+                                options[i].text = `🚫${options[i].text}`;
+                            }
+                            options[i].disabled = true;
+                            options[i].style.color = "gray";
+                        } else {
+                            // Remove the prohibited emoji if it was previously added
+                            if (isMultiple && options[i].text.startsWith("🚫")) {
+                                options[i].text = options[i].text.replace("🚫", "");
+                            }
+                            if (options[i].text.startsWith("🔒")) {
+                                // Do not remove the lock emoji
+                            } else {
+                                options[i].disabled = false;
+                                options[i].style.color = "#000";
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Unlock Selections
+            function unlockSelections() {
+                Swal.fire({
+                    title: "Unlock Selections",
+                    text: "Apakah Anda yakin ingin membuka kunci semua seleksi?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Ya, Unlock!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Stop and reset the stopwatch
+                        stopStopwatch();
+                        resetStopwatch();
+
+                        // Remove all locked selections
+                        lockedSelections = {};
+
+                        // Update the dropdowns to reflect unlocked selections
+                        populateMID();
+                        populateLane(activeZone); // Ensure the correct zone lanes are loaded
+
+                        // Enable all form fields for both single and multiple MID modes
+                        const formElements = document.querySelectorAll("#palletForm select, #palletForm input");
+                        formElements.forEach((element) => {
+                            element.disabled = false; // Re-enable all form elements
+                        });
+
+                        // Re-enable Zona A and Zona B buttons
+                        document.getElementById("zoneAButton").disabled = false;
+                        document.getElementById("zoneBButton").disabled = false;
+
+                        // Hide Unlock button after unlocking
+                        document.getElementById("unlockButton").style.display = "none";
+
+                        Swal.fire("Dibuka!", "Semua seleksi telah dibuka, Anda sekarang dapat mengubah nilainya.", "success");
+                    }
+                });
+            }
+
+            function resetStopwatch() {
+                stopwatchTime = 0;
+                document.getElementById("stopwatch").innerText = "00:00:00";
+            }
+
+            function checkLanesAfterSubmit(successEntries) {
+                let lanesToCheck = successEntries.map((entry) => entry.lane);
+
+                google.script.run
+                    .withSuccessHandler(function (laneStatus) {
+                        let lanesStillNotFull = lanesToCheck.filter((lane) => (laneStatus[lane] || 0) < getMaxPallet(lane));
+
+                        if (lanesStillNotFull.length === 0) {
+                            // If all lanes are full, reset form and stopwatch
+                            Swal.fire({
+                                icon: "info",
+                                title: "Lane Penuh",
+                                text: "Semua lane sudah penuh. Form akan direset.",
+                            }).then(() => {
+                                resetForm(); // Reset form if full
+                            });
+                        } else {
+                            // Lanes are not full yet, switch submit button back to play
+                            document.getElementById("submitButton").style.display = "none";
+                            document.getElementById("playButton").style.display = "flex";
+
+                            // Re-enable play button
+                            document.getElementById("playButton").style.pointerEvents = "auto";
+
+                            // Re-enable submit button if play is restarted
+                            document.getElementById("submitButton").style.pointerEvents = "auto";
+                        }
+                    })
+                    .getLaneStatus(activeZone);
+            }
+
+            // Attach event listeners to Lane selects to disable selected lanes in other selects
+            document.addEventListener("DOMContentLoaded", function () {
+                const laneSelects = document.querySelectorAll('select[id^="lane"]');
+                laneSelects.forEach((select) => {
+                    select.addEventListener("change", disableSelectedLaneOptions);
+                });
+            });
+
+            // Function to hide elements before the user selects a Zone
+            function hideInitialElements() {
+                document.getElementById("playButton").style.display = "none"; // Hide play button
+                document.getElementById("submitButton").style.display = "none"; // Hide submit button
+                document.getElementById("stopwatch").style.display = "none"; // Hide stopwatch
+            }
+
+            // Function to show elements after Zone A or B is selected
+            function showElementsAfterZoneSelection() {
+                document.getElementById("playButton").style.display = "flex"; // Show play button
+                document.getElementById("stopwatch").style.display = "block"; // Show stopwatch
+                document.getElementById("submitButton").style.display = "none"; // Keep submit button hidden until play is pressed
+            }
+
+let progressBarInterval;
+
+function updateProgressBar() {
+    const laneSelect = document.getElementById("lane");
+    const selectedLane = laneSelect.value;
+    const progressBar = document.getElementById("laneProgress");
+    const progressText = document.getElementById("progressText");
+
+    if (selectedLane) {
+        // Clear any existing interval to avoid multiple timers
+        clearInterval(progressBarInterval);
+
+        const maxPallet = getMaxPallet(selectedLane);
+
+        // Show the progress bar and text
+        progressBar.style.display = "block";
+        progressText.style.display = "block";
+
+        // Initial call to update immediately
+        updateProgress(selectedLane, maxPallet);
+
+        // Set interval to update every second
+        progressBarInterval = setInterval(() => {
+            updateProgress(selectedLane, maxPallet);
+        }, 1000);
+    } else {
+        clearInterval(progressBarInterval); // Clear the interval if no lane is selected
+        progressBar.style.display = "none"; // Hide progress bar
+        progressText.style.display = "none"; // Hide progress text
+        document.getElementById("laneStatusDisplay").textContent = ""; // Set status display text
+    }
+}
+
+function updateProgress(selectedLane, maxPallet) {
+    google.script.run
+        .withSuccessHandler(function (laneStatusData) {
+            const progressBar = document.getElementById("laneProgress");
+            const progressText = document.getElementById("progressText");
+            const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
+            const currentQuantity = laneData ? laneData.quantity : 0;
+
+            // Calculate percentage filled
+            const percentageFilled = (currentQuantity / maxPallet) * 100;
+
+            // Update the progress bar
+            progressBar.value = percentageFilled;
+            progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
+
+            // Change color based on percentage
+            if (percentageFilled >= 100) {
+                progressBar.style.backgroundColor = "red"; // Full
+            } else if (percentageFilled >= 75) {
+                progressBar.style.backgroundColor = "orange"; // 75% and above
+            } else if (percentageFilled >= 50) {
+                progressBar.style.backgroundColor = "yellow"; // 50% to 74%
+            } else {
+                progressBar.style.backgroundColor = "green"; // Below 50%
+            }
+
+            // Ensure the progress bar is displayed
+            progressBar.style.display = "block";
+            progressText.style.display = "block"; // Show the text
+
+            // Update the lane status display
+            const laneStatusDisplay = document.getElementById("laneStatusDisplay");
+            laneStatusDisplay.textContent = `${selectedLane} (${currentQuantity}/${maxPallet})`;
+
+            // Stop updating if full
+            if (currentQuantity >= maxPallet) {
+                clearInterval(progressBarInterval); // Stop updating if full
+            }
+        })
+        .getLaneStatusData();
+}
+
+// New function for multiple MID progress updates
+function updateMultipleProgressBar(midIndex) {
+    const laneSelect = document.getElementById(`lane${midIndex}`);
+    const selectedLane = laneSelect.value;
+    const progressBar = document.getElementById(`lane${midIndex}Progress`);
+    const progressText = document.getElementById(`multipleProgressText${midIndex}`);
+
+    if (selectedLane) {
+        // Clear any existing interval to avoid multiple timers
+        clearInterval(progressBarInterval);
+
+        const maxPallet = getMaxPallet(selectedLane); // Adjust this if necessary for multiple lanes
+
+        // Show the progress bar and text
+        progressBar.style.display = "block";
+        progressText.style.display = "block";
+
+        // Initial call to update immediately
+        updateMultipleProgress(selectedLane, maxPallet, midIndex);
+
+        // Set interval to update every second
+        progressBarInterval = setInterval(() => {
+            updateMultipleProgress(selectedLane, maxPallet, midIndex);
+        }, 1000);
+    } else {
+        clearInterval(progressBarInterval); // Clear the interval if no lane is selected
+        progressBar.style.display = "none"; // Hide progress bar
+        progressText.style.display = "none"; // Hide progress text
+    }
+}
+
+// Function to update progress for multiple MID
+function updateMultipleProgress(selectedLane, maxPallet, midIndex) {
+    google.script.run
+        .withSuccessHandler(function (laneStatusData) {
+            const progressBar = document.getElementById(`lane${midIndex}Progress`);
+            const progressText = document.getElementById(`multipleProgressText${midIndex}`);
+            const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
+            const currentQuantity = laneData ? laneData.quantity : 0;
+
+            // Calculate percentage filled
+            const percentageFilled = (currentQuantity / maxPallet) * 100;
+
+            // Update the progress bar
+            progressBar.value = percentageFilled;
+            progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
+
+            // Change color based on percentage
+            if (percentageFilled >= 100) {
+                progressBar.style.backgroundColor = "red"; // Full
+            } else if (percentageFilled >= 75) {
+                progressBar.style.backgroundColor = "orange"; // 75% and above
+            } else if (percentageFilled >= 50) {
+                progressBar.style.backgroundColor = "yellow"; // 50% to 74%
+            } else {
+                progressBar.style.backgroundColor = "green"; // Below 50%
+            }
+
+            // Ensure the progress bar is displayed
+            progressBar.style.display = "block";
+            progressText.style.display = "block"; // Show the text
+        })
+        .getLaneStatusData();
+}
+
+            window.onload = function () {
+                hideInitialElements(); // Ensure the stopwatch is hidden initially
+                populateMID(); // Populate MID dropdown on load
+            };
+        </script>
+    </body>
+</html>
