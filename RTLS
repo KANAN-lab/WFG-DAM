@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Main Page</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f8f9fa; /* Background yang lembut */
+    }
+    .container {
+      max-width: 400px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #343a40; /* Warna teks lebih gelap */
+    }
+    .btn-custom {
+      width: 100%; 
+      max-width: 300px;
+      margin-bottom: 15px; /* Spasi antar tombol lebih besar */
+      font-size: 16px; /* Font yang lebih besar */
+      padding: 10px 0;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .btn-success {
+      background-color: #28a745;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+    }
+    /* Smooth transition hover */
+    .btn-custom:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="container text-center">
+    <h1 class="title">Real-Time Location System</h1>
+    <button class="btn btn-primary btn-custom" onclick="navigateTo('Maps')"><i class="fa-solid fa-arrows-rotate"></i> Actual Maps</button>
+    <button class="btn btn-success btn-custom" onclick="navigateTo('MiniMaps')"><i class="fa-solid fa-clipboard-check"></i> Base On Stock Opname</button>
+    <button class="btn btn-dark btn-custom" onclick="navigateTo('MovingLaneStatus')"><i class="fa-solid fa-shuffle"></i> Moving Lane</button>
+    <button class="btn btn-danger btn-custom"  onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
+  </div>
+
+  <script>
+// Navigasi ke halaman lain
+function navigateTo(page) {
+  // Show a loading spinner
+  insertLoadingSpinner();  // Dynamically insert spinner
+  
+  google.script.run.withSuccessHandler(function(html) {
+    // Replace entire document content
+    document.open();
+    document.write(html);
+    document.close();
+  }).loadPage(page);
+}
+
+// Function to insert loading spinner into the body
+function insertLoadingSpinner() {
+  const spinnerHtml = `
+    <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-secondary" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-success" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-danger" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-warning" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-light" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-dark" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+    </div>
+  `;
+
+  // Append the spinner HTML to the body
+  document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+}
+
+// Function to remove the loading spinner after page load
+function removeLoadingSpinner() {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) {
+    spinner.remove(); // Remove spinner after the page has loaded
+  }
+}
+
+  </script>
+
+</body>
+</html>
