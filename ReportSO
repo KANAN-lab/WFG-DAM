@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data View</title>
+  <!-- Updated Bootstrap to version 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Lottie Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js"></script>
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding: 20px;
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    th {
+      text-align: center;
+      background-color: #343a40;
+      color: #fff;
+    }
+    .back-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      .back-button {
+        top: 10px;
+        right: 10px;
+      }
+    }
+    @media (min-width: 769px) {
+      .container {
+        max-width: 1200px;
+      }
+    }
+
+    /* Style for the filter container */
+    .filters {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px; /* Increased space between filter elements */
+      margin-bottom: 25px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .filters .form-group {
+      flex: 1; /* Let each form-group take equal space */
+      min-width: 200px; /* Set a minimum width for small screens */
+    }
+
+    /* Tambahkan padding kecil untuk tombol edit */
+    .edit-button {
+      padding: 5px 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Center the action buttons */
+    td.action-td {
+      text-align: center;
+    }
+
+    /* Style for the password modal */
+    .modal-password {
+      text-align: center;
+    }
+
+    /* Loading overlay styling */
+    .loading-overlay {
+      position: fixed; /* Ensures the overlay covers the entire viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none; /* Hidden by default */
+    }
+    /* Lottie container styling */
+    .lottie-container {
+      width: 200px;
+      height: 200px;
+    }
+    @media (max-width: 576px) {
+      .lottie-container {
+        width: 100px;
+        height: 100px;
+      }
+    }
+
+    /* Additional styles for better responsiveness */
+    @media (max-width: 576px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .filters .form-group label {
+        font-size: 0.9rem;
+      }
+      .edit-button {
+        padding: 3px 8px;
+        font-size: 0.8rem;
+      }
+      .modal-content {
+        padding: 15px;
+      }
+    }
+
+    /* Enhanced table styling */
+    .table {
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .table th, .table td {
+      vertical-align: middle;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Ensure table header background is black and text color is white */
+    .table th {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    /* Enhanced button styles */
+    .btn-primary {
+      background-color: #0d6efd;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+    }
+    .btn-warning {
+      background-color: #ffc107;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
+    .btn-success {
+      background-color: #198754;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn-success:hover {
+      background-color: #157347;
+    }
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Overlay with Lottie Animation -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="lottie-container" id="loadingAnimation"></div>
+  </div>
+
+  <div class="container">
+    <button class="btn btn-danger" onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
+
+    <h1 class="mb-4 text-center">Data View Stock Opname</h1>
+
+    <!-- Tambahkan elemen untuk currentMonth dan currentDate -->
+    <p id="currentMonth" class="d-none"></p>
+    <p id="currentDate" class="d-none"></p>
+
+    <!-- Flex container for filters -->
+    <div class="filters">
+      <!-- Filter Tanggal -->
+      <div class="form-group">
+        <label for="dateFilter">Filter by Date</label>
+        <input type="date" id="dateFilter" class="form-control" onchange="onDateChange()">
+      </div>
+
+      <!-- Filter Zona -->
+      <div class="form-group">
+        <label for="zoneFilter">Filter by Zone</label>
+        <select id="zoneFilter" class="form-select" onchange="fetchData()">
+          <option value="">All Zones</option>
+          <option value="ZONAA">ZONA A</option>
+          <option value="ZONAB">ZONA B</option>
+          <option value="ZONAE">ZONA ECERAN</option>
+        </select>
+      </div>
+
+      <!-- Filter Sesi (Morning/Afternoon) -->
+      <div class="form-group">
+        <label for="sessionFilter">Filter by Session</label>
+        <select id="sessionFilter" class="form-select" onchange="fetchData()">
+          <option value="morning">Morning (01:00 - 12:00)</option>
+          <option value="afternoon">Afternoon (13:00 - 24:00)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Container for the table to make it responsive -->
+    <div class="table-responsive">
+      <!-- Tabel Data -->
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>LANE</th>
+            <th>BARCODE</th>
+            <th>NAME</th>
+            <th>QTY</th>
+            <th>ZONE</th>
+            <th>TIME</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="dataTable">
+          <!-- Data akan ditampilkan di sini -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="passwordModalLabel">Enter Password to Edit</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body modal-password">
+          <input type="password" id="passwordInput" class="form-control" placeholder="Enter Password">
+          <small id="passwordError" class="text-danger d-none">Incorrect password!</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="checkPassword()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentRowIndex = null;
+    let currentUniqueCode = null;
+    let loadingAnimation = null; // Variable to hold the Lottie animation instance
+
+    const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+                        "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const currentDateObj = new Date();
+    document.getElementById("currentMonth").textContent = monthNames[currentDateObj.getMonth()];
+
+    const formattedDate = currentDateObj.toLocaleDateString("en-GB", { day: '2-digit', month: '2-digit', year: 'numeric' });
+    document.getElementById("currentDate").textContent = "Date: " + formattedDate;
+
+    // Set the default date to today's date
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateFilter').value = today;
+      fetchData();  // Secara otomatis mengambil data untuk hari ini
+    });
+
+    // Function to show the loading spinner using Lottie
+    function showLoadingSpinner() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'flex';  // Show the loading overlay
+
+      // Initialize Lottie animation if not already initialized
+      if (!loadingAnimation) {
+        loadingAnimation = lottie.loadAnimation({
+          container: document.getElementById('loadingAnimation'), // the dom element
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'https://lottie.host/85c0d91b-5638-41f4-98c5-2fbe1ca9d681/Q6fbzO4HyH.json' // URL to your Data Loading Lottie animation JSON
+        });
+      } else {
+        loadingAnimation.play();
+      }
+    }
+
+    // Function to hide the loading spinner
+    function hideLoadingSpinner() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.style.display = 'none';  // Hide the loading overlay
+
+      if (loadingAnimation) {
+        loadingAnimation.stop();
+      }
+    }
+
+    function fetchData() {
+      showLoadingSpinner(); // Show the loading spinner before fetching data
+
+      const date = document.getElementById('dateFilter').value; // Ambil tanggal yang dipilih
+      const zoneFilter = document.getElementById('zoneFilter').value; // Ambil zona yang dipilih
+      const sessionFilter = document.getElementById('sessionFilter').value;  // Ambil sesi (pagi/sore)
+      
+      // Panggil fungsi server-side untuk mengambil data yang sesuai
+      google.script.run.withSuccessHandler(function(data) {
+        renderTable(data);
+        hideLoadingSpinner(); // Hide the loading spinner after data is populated
+      }).getDataByDateZoneAndSession(date, zoneFilter, sessionFilter);
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById('dataTable');
+      table.innerHTML = ''; // Bersihkan tabel sebelum memuat data baru
+      if (data.length === 0) {
+        table.innerHTML = '<tr><td colspan="7" class="text-center">No data available</td></tr>';
+        return;
+      }
+      data.forEach((row, rowIndex) => {
+        const tr = document.createElement('tr');
+        row.forEach((cell, cellIndex) => {
+          const td = document.createElement('td');
+          if (cellIndex === 3) { // Kolom QTY
+            td.innerHTML = `<span id="qty-${rowIndex}">${cell}</span>`;
+          } else {
+            td.textContent = cell;
+          }
+          tr.appendChild(td);
+        });
+        
+        // Tambahkan tombol Edit dan Selesai di tengah (center)
+        const actionTd = document.createElement('td');
+        actionTd.classList.add('action-td'); // Center the buttons
+        actionTd.innerHTML = `<button class="btn btn-warning edit-button" id="edit-${rowIndex}" onclick="showPasswordModal(${rowIndex}, '${row[4]}')"><i class="fas fa-edit me-1"></i>Edit</button>
+                              <button class="btn btn-success edit-button" id="save-${rowIndex}" style="display:none;" onclick="saveQuantity(${rowIndex}, '${row[4]}')"><i class="fas fa-check me-1"></i>Selesai</button>`;
+        tr.appendChild(actionTd);
+        table.appendChild(tr);
+      });
+    }
+
+    // Fungsi untuk menampilkan modal password
+    function showPasswordModal(rowIndex, uniqueCode) {
+      currentRowIndex = rowIndex;
+      currentUniqueCode = uniqueCode;
+      document.getElementById('passwordError').classList.add('d-none'); // Sembunyikan error password jika sebelumnya muncul
+      document.getElementById('passwordInput').value = ''; // Kosongkan input password
+      var passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+      passwordModal.show(); // Tampilkan modal
+    }
+
+    // Fungsi untuk mengecek password
+    function checkPassword() {
+      const password = document.getElementById('passwordInput').value;
+      if (password === 'yaitu') {
+        var passwordModal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+        passwordModal.hide(); // Tutup modal jika password benar
+        enableEditing(currentRowIndex, currentUniqueCode);
+      } else {
+        document.getElementById('passwordError').classList.remove('d-none'); // Tampilkan pesan error
+      }
+    }
+
+    function enableEditing(rowIndex, uniqueCode) {
+      // Aktifkan input pada kolom QTY
+      const qtyElement = document.getElementById(`qty-${rowIndex}`);
+      const currentQty = qtyElement.textContent;
+      qtyElement.innerHTML = `<input type="number" class="form-control" id="input-qty-${rowIndex}" value="${currentQty}">`;
+
+      // Ubah tombol "Edit" menjadi "Selesai"
+      document.getElementById(`edit-${rowIndex}`).style.display = 'none';
+      document.getElementById(`save-${rowIndex}`).style.display = 'inline-block';
+    }
+
+    function saveQuantity(rowIndex, uniqueCode) {
+      // Ambil nilai baru dari input QTY
+      const newQty = document.getElementById(`input-qty-${rowIndex}`).value;
+      const qtyElement = document.getElementById(`qty-${rowIndex}`);
+
+      // Tampilkan kembali nilai QTY baru sebagai teks
+      qtyElement.innerHTML = newQty;
+
+      // Panggil fungsi server-side untuk memperbarui QTY di spreadsheet berdasarkan uniqueCode
+      google.script.run.updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQty);
+
+      // Kembalikan tombol "Edit" dan sembunyikan tombol "Selesai"
+      document.getElementById(`edit-${rowIndex}`).style.display = 'inline-block';
+      document.getElementById(`save-${rowIndex}`).style.display = 'none';
+    }
+
+    // Navigasi ke halaman lain
+    function navigateTo(page) {
+      showLoadingSpinner();  // Show the Lottie spinner
+      
+      google.script.run.withSuccessHandler(function(html) {
+        // Replace entire document content
+        document.open();
+        document.write(html);
+        document.close();
+        hideLoadingSpinner(); // Hide the loading spinner after navigation
+      }).loadPage(page);
+    }
+
+    // Function to insert loading spinner into the body (Bootstrap Spinner)
+    // Fungsi ini tetap ada jika Anda masih ingin menggunakan spinner Bootstrap di luar Lottie spinner
+    function insertLoadingSpinner() {
+      const spinnerHtml = `
+        <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-secondary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-danger" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-info" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-dark" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      `;
+
+      // Append the spinner HTML to the body
+      document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+    }
+
+    // Function to remove the loading spinner after page load
+    function removeLoadingSpinner() {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.remove(); // Remove spinner after the page has loaded
+      }
+    }
+
+    // Function to handle date change and set session to morning
+    function onDateChange() {
+      // Set sessionFilter to morning
+      document.getElementById('sessionFilter').value = 'morning';
+      // Fetch data after setting session to morning
+      fetchData();
+    }
+
+  // Navigasi ke halaman lain
+  // Function definitions and other scripts remain unchanged
+  </script>
+
+  <!-- Bootstrap JS and dependencies updated to Bootstrap 5 -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
