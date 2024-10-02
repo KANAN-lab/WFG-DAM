@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Combined Chart</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* General layout adjustments */
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Container adjustments for proportional layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Custom styles for the filter buttons */
+    .btn-filter {
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
+      margin-right: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .btn-filter:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    .btn-day {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn-week {
+      background-color: #17a2b8;
+      color: white;
+    }
+    .btn-month {
+      background-color: #ffc107;
+      color: black;
+    }
+    .btn-year {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    /* Chart container with proportional dimensions */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      margin-bottom: 40px; /* Add space between chart and table */
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    /* Container for the table with proper scrolling behavior */
+    .table-responsive {
+      max-height: 400px; /* Set a max height to enable scrolling */
+      overflow-y: auto; /* Enable vertical scrolling */
+      background-color: white; /* Ensure the container has a solid background */
+      border-radius: 10px; /* Rounded corners */
+      border: 2px solid #343a40; /* Solid border for the container */
+      position: relative; /* Ensure proper positioning of child elements */
+      padding: 0; /* Remove padding inside the container */
+      margin-top: 20px; /* Margin to separate the container from other elements */
+    }
+
+    /* Sticky header for the table */
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10; /* Ensure the header stays above scrolling content */
+      background-color: #343a40; /* Header background */
+      color: white; /* Header text color */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for better visual separation */
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      border-bottom: 2px solid white; /* Border between header and body */
+    }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      text-align: center;
+      border-collapse: collapse; /* Ensure borders are collapsed neatly */
+    }
+
+    table th, table td {
+      padding: 15px; /* Add padding for better spacing */
+      vertical-align: middle; /* Vertically align content in the center */
+      border-bottom: 1px solid #ddd; /* Add border between table rows */
+    }
+
+    /* Zebra stripes effect for better row distinction */
+    tbody tr:nth-child(odd) {
+      background-color: #f9f9f9; /* Light grey background for odd rows */
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #ffffff; /* White background for even rows */
+    }
+
+    /* Highlight row on hover for better visibility */
+    tbody tr:hover {
+      background-color: #d4edda; /* Light green background on hover */
+      transition: background-color 0.3s ease; /* Smooth hover effect */
+    }
+
+    /* Ensure sticky behavior is maintained on smaller screens */
+    @media (max-width: 576px) {
+      thead th {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+
+    /* Loading overlay styling */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      display: none;
+    }
+
+    .lottie-container {
+      width: 200px;
+      height: 200px;
+    }
+
+    @media (max-width: 576px) {
+      .lottie-container {
+        width: 100px;
+        height: 100px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay with Lottie Animation -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="lottie-container" id="loadingAnimation"></div>
+  </div>
+
+  <div class="container mt-5">
+    <h2 class="mb-4 animate__animated animate__fadeInDown text-center">Report Damage</h2>
+
+    <!-- Filter Buttons -->
+    <div class="btn-group mb-4 animate__animated animate__fadeInLeft text-center">
+      <button class="btn btn-filter btn-day" onclick="filterData('day')"><i class="fas fa-calendar-day"></i> Day</button>
+      <button class="btn btn-filter btn-week" onclick="filterData('week')"><i class="fas fa-calendar-week"></i> Week</button>
+      <button class="btn btn-filter btn-month" onclick="filterData('month')"><i class="fas fa-calendar-alt"></i> Month</button>
+      <button class="btn btn-filter btn-year" onclick="filterData('year')"><i class="fas fa-calendar"></i> Year</button>
+    </div>
+
+    <!-- Date Picker Filter -->
+    <div class="form-inline mb-4 animate__animated animate__fadeInRight text-center">
+      <input type="date" id="startDate" class="form-control date-picker mx-2" onchange="filterByDate()" placeholder="Start Date">
+      <input type="date" id="endDate" class="form-control date-picker mx-2" onchange="filterByDate()" placeholder="End Date">
+    </div>
+
+    <!-- Chart Canvas -->
+    <div class="chart-container animate__animated animate__fadeInUp">
+      <canvas id="myChart"></canvas>
+    </div>
+
+    <!-- Data Table -->
+    <div id="table-section" class="table-responsive mt-5">
+      <table class="table table-bordered table-hover table-striped">
+        <thead>
+          <tr>
+            <th>Checker</th>
+            <th>Gate</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Time</th> <!-- New column for 'Waktu' -->
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be populated dynamically from Google Sheets -->
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      let chartInstance;
+      let loadingAnimation = null; // Variable to hold the Lottie animation instance
+
+      // Function to draw the chart with hover animation and tooltip for nearest data point
+      function drawChart(data) {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        // If a chart instance already exists, destroy it to prevent overlapping
+        if (chartInstance) {
+          chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+          type: 'line', // Use 'line' chart for this example
+          data: data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false, // Ensure chart fills container height
+            animations: {
+              radius: {
+                duration: 400, // Duration of the radius animation on hover
+                easing: 'linear', // Easing function for smooth animation
+                loop: (context) => context.active // Loop animation while active
+              }
+            },
+            hoverRadius: 12, // Increase the radius on hover
+            hoverBackgroundColor: 'yellow', // Background color when hovered
+            interaction: {
+              mode: 'nearest', // Interact only with the nearest point
+              intersect: true // Intersect ensures that only hovered point is affected
+            },
+            plugins: {
+              tooltip: {
+                enabled: true, // Enable tooltips for individual points
+                mode: 'nearest', // Show the tooltip for the nearest data point
+                intersect: true // Only show tooltip when hovering directly over a point
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Tanggal'
+                },
+                ticks: {
+                  autoSkip: true,
+                  maxTicksLimit: 20
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Jumlah Quantity'
+                },
+                beginAtZero: true,
+                min: 0
+              }
+            }
+          },
+          datasets: data.datasets.map(dataset => ({
+            ...dataset,
+            tension: 0.1  // Make the lines smooth with tension
+          }))
+        });
+
+        hideLoadingSpinner(); // Hide loading spinner after drawing the chart
+      }
+
+      // Function to filter data based on selected range
+      function filterData(range) {
+        showLoadingSpinner(); // Show loading spinner before fetching data
+
+        google.script.run.withSuccessHandler(function(data) {
+          const filteredData = applyFilter(data, range);
+          drawChart(filteredData.chartData);
+          populateTable(filteredData.tableData);
+        }).getChartData();
+      }
+
+      // Function to filter chart data by day, week, month, or year
+      function applyFilter(data, range) {
+        const labels = data.labels;
+        const datasets = data.datasets;
+
+        const currentDate = new Date();
+        const filteredLabels = [];
+        const filteredDatasets = datasets.map(dataset => ({ ...dataset, data: [] }));
+
+        labels.forEach((label, index) => {
+          const dateParts = label.split('-');
+          const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Convert dd-MM-yyyy to Date
+
+          let include = false;
+
+          if (range === 'day') {
+            include = currentDate.toDateString() === date.toDateString();
+          } else if (range === 'week') {
+            const oneWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+            include = date >= oneWeekAgo && date <= currentDate;
+          } else if (range === 'month') {
+            include = currentDate.getMonth() === date.getMonth() && currentDate.getFullYear() === date.getFullYear();
+          } else if (range === 'year') {
+            include = currentDate.getFullYear() === date.getFullYear();
+          }
+
+          if (include) {
+            filteredLabels.push(label);
+            filteredDatasets.forEach((dataset, i) => {
+              dataset.data.push(datasets[i].data[index]);
+            });
+          }
+        });
+
+        return {
+          chartData: {
+            labels: filteredLabels,
+            datasets: filteredDatasets
+          },
+          tableData: data.tableData // Pass original table data to be filtered later
+        };
+      }
+
+      // Function to filter data by selected date range
+      function filterByDate() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (startDate && endDate) {
+          showLoadingSpinner(); // Show loading spinner before fetching data
+
+          google.script.run.withSuccessHandler(function(data) {
+            const filteredData = applyDateFilter(data, startDate, endDate);
+            drawChart(filteredData.chartData);
+            populateTable(filteredData.tableData);
+          }).getChartData();
+        }
+      }
+
+      // Function to apply date range filter
+      function applyDateFilter(data, startDate, endDate) {
+        const labels = data.labels;
+        const datasets = data.datasets;
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const filteredLabels = [];
+        const filteredDatasets = datasets.map(dataset => ({ ...dataset, data: [] }));
+
+        labels.forEach((label, index) => {
+          const dateParts = label.split('-');
+          const date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]); // Convert dd-MM-yyyy to Date
+
+          if (date >= start && date <= end) {
+            filteredLabels.push(label);
+            filteredDatasets.forEach((dataset, i) => {
+              dataset.data.push(datasets[i].data[index]);
+            });
+          }
+        });
+
+        return {
+          chartData: {
+            labels: filteredLabels,
+            datasets: filteredDatasets
+          },
+          tableData: applyTableDateFilter(data.tableData, start, end) // Apply filter to table data
+        };
+      }
+
+      // Function to apply date filter to table data
+      function applyTableDateFilter(tableData, start, end) {
+        return tableData.filter(row => {
+          const rowDate = new Date(row.waktu.split(' ')[0].split('-').reverse().join('-')); // Convert 'dd-MM-yyyy' to Date
+          return rowDate >= start && rowDate <= end;
+        });
+      }
+
+      // Fetch and populate table data
+      function populateTable() {
+        showLoadingSpinner(); // Show loading spinner before fetching data
+
+        google.script.run.withSuccessHandler(function(data) {
+          const tableBody = document.querySelector('tbody');
+          tableBody.innerHTML = ''; // Clear existing table rows
+
+          data.forEach(row => {
+            const newRow = `<tr>
+              <td>${row.checker}</td>
+              <td>${row.gate}</td>
+              <td>${row.product}</td>
+              <td>${row.quantity}</td>
+              <td>${row.waktu}</td> <!-- Calculated 'Waktu' with day and time difference -->
+            </tr>`;
+            tableBody.innerHTML += newRow;
+          });
+
+          hideLoadingSpinner(); // Hide loading spinner after data is populated
+        }).getSheetData();
+      }
+
+      // Initial load
+      window.onload = function() {
+        populateTable(); // Populate table on page load
+        filterData('month'); // Default to month view on load
+      };
+
+      // Function to show the loading spinner using Lottie
+      function showLoadingSpinner() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.style.display = 'flex'; // Show the loading overlay
+
+        // Initialize Lottie animation if not already initialized
+        if (!loadingAnimation) {
+          loadingAnimation = lottie.loadAnimation({
+            container: document.getElementById('loadingAnimation'), // the dom element
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://lottie.host/85c0d91b-5638-41f4-98c5-2fbe1ca9d681/Q6fbzO4HyH.json' // URL to your Data Loading Lottie animation JSON
+          });
+        } else {
+          loadingAnimation.play();
+        }
+      }
+
+      // Function to hide the loading spinner
+      function hideLoadingSpinner() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.style.display = 'none'; // Hide the loading overlay
+
+        if (loadingAnimation) {
+          loadingAnimation.stop();
+        }
+      }
+
+      // Navigasi ke halaman lain
+      function navigateTo(page) {
+        // Show a loading spinner
+        insertLoadingSpinner();  // Dynamically insert spinner
+        
+        google.script.run.withSuccessHandler(function(html) {
+          // Replace entire document content
+          document.open();
+          document.write(html);
+          document.close();
+        }).loadPage(page);
+      }
+
+      // Function to insert loading spinner into the body
+      function insertLoadingSpinner() {
+        const spinnerHtml = `
+          <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-secondary" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-success" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-danger" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-warning" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-info" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-light" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div class="spinner-grow text-dark" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+          </div>
+        `;
+
+        // Append the spinner HTML to the body
+        document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+      }
+
+      // Function to remove the loading spinner after page load
+      function removeLoadingSpinner() {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) {
+          spinner.remove(); // Remove spinner after the page has loaded
+        }
+      }
+
+    </script>
+  </div>
+</body>
+</html>
