@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - Inbound Full Pallet</title>
+    <!-- SweetAlert2 for Alert Messages -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Internal CSS Styles -->
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px 60px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 28px;
+            color: #343a40;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #495057;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .custom-select, .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background-color: #fff;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .custom-select:focus, .input-field:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+            outline: none;
+        }
+
+        .custom-select-wrapper {
+            position: relative;
+        }
+
+        .custom-select-arrow {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #6c757d;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .submit-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SETTING RF2 WFG</h1>
+        <form id="adminSettingsForm">
+            <div class="input-group">
+                <label for="settingSelect">Select Setting Value:</label>
+                <div class="custom-select-wrapper">
+                    <select id="settingSelect" class="custom-select">
+                        <option value="">--Select Setting--</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <!-- Add more options as needed -->
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="passwordInput">Enter Admin Password:</label>
+                <input type="password" id="passwordInput" class="input-field" placeholder="Password">
+            </div>
+
+            <button type="button" class="submit-btn" onclick="saveSetting()">Save Setting</button>
+        </form>
+    </div>
+
+    <!-- Internal JavaScript -->
+    <script>
+        // Function to save the setting value
+        function saveSetting() {
+            var settingValue = document.getElementById("settingSelect").value;
+            var password = document.getElementById("passwordInput").value;
+
+            if (settingValue === "") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "No Setting Selected",
+                    text: "Please select a setting value before saving.",
+                    confirmButtonColor: "#ffc107"
+                });
+                return;
+            }
+
+            if (password === "") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Password Required",
+                    text: "Please enter the admin password to save the setting.",
+                    confirmButtonColor: "#ffc107"
+                });
+                return;
+            }
+
+            // Show a loading SweetAlert
+            Swal.fire({
+                title: 'Saving Setting...',
+                html: 'Please wait while the setting is being saved.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+
+            // Call server-side function to save the setting
+            google.script.run.withSuccessHandler(function(response) {
+                // Close the loading modal
+                Swal.close();
+
+                if (response.success) {
+                    // Show success message
+                    Swal.fire({
+                        icon: "success",
+                        title: "Setting Saved",
+                        text: "The setting value has been updated successfully.",
+                        confirmButtonColor: "#28a745"
+                    });
+                    // Clear the password field
+                    document.getElementById("passwordInput").value = "";
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error Saving Setting",
+                        text: response.message,
+                        confirmButtonColor: "#dc3545"
+                    });
+                }
+            }).withFailureHandler(function(error) {
+                // Close the loading modal
+                Swal.close();
+
+                // Show error message
+                Swal.fire({
+                    icon: "error",
+                    title: "Error Saving Setting",
+                    text: error.message,
+                    confirmButtonColor: "#dc3545"
+                });
+            }).saveSetting(settingValue, password);
+        }
+
+        // Function to load the current setting value when the page loads
+        function loadCurrentSetting() {
+            google.script.run.withSuccessHandler(function(settingValue) {
+                if (settingValue) {
+                    document.getElementById("settingSelect").value = settingValue;
+                }
+            }).getSetting();
+        }
+
+        // Load current setting on page load
+        window.onload = loadCurrentSetting;
+    </script>
+</body>
+</html>
