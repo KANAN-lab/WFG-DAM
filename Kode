@@ -1,0 +1,1044 @@
+function doGet() {
+  return HtmlService.createTemplateFromFile('Index').evaluate()
+  //return HtmlService.createTemplateFromFile('Builder8').evaluate()
+    .addMetaTag('viewport', 'width=device-width , initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// Function to get the HTML for a specific page
+function loadPage(page) {
+  return HtmlService.createTemplateFromFile(page).evaluate().getContent();  // Returns the HTML content for the page
+
+}
+
+// Fungsi untuk mengarahkan ke halaman utama (Main Page)
+function redirectToMainPage() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('WFG');
+}
+
+/**
+ * INCLUDE HTML PARTS, EG. JAVASCRIPT, CSS, OTHER HTML FILES
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+function submitDataSO(data) {
+  const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+  const sheetName = 'SO RAW';
+  const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+  
+  // Menyisipkan data ke sheet
+  sheet.getRange(sheet.getLastRow() + 1, 1, data.length, data[0].length).setValues(data);
+}
+
+function getDataByDateZoneAndSession(date, zoneFilter, sessionFilter) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const data = sheet.getDataRange().getValues(); // Ambil semua data dari sheet
+  
+  const inputDate = new Date(date); // Konversi input tanggal dari pengguna
+  
+  // Filter data berdasarkan tanggal, zona, dan session
+  const filteredData = data.filter(row => {
+    let rowDateText = row[5];  // Asumsikan kolom F (indeks 5) berisi tanggal dan waktu
+    let rowDate = new Date(rowDateText);
+    const rowTime = rowDate.getHours(); // Ambil jam dari timestamp
+
+    // Handle format tanggal yang tidak valid
+    if (isNaN(rowDate)) {
+      const parts = rowDateText.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const year = parseInt(parts[2], 10);
+        rowDate = new Date(year, month, day);
+      }
+    }
+
+    // Filter berdasarkan tanggal
+    const isDateMatch = rowDate.toDateString() === inputDate.toDateString();
+
+    // Filter berdasarkan zona
+    const isZoneMatch = zoneFilter === '' || row[4].startsWith(zoneFilter); // Asumsikan kolom E (indeks 4) berisi zona
+
+    // Filter berdasarkan session (morning atau afternoon)
+    let isSessionMatch = false;
+    if (sessionFilter === 'morning') {
+      isSessionMatch = rowTime >= 1 && rowTime < 13; // Morning: 01:00 AM - 12:00 PM
+    } else if (sessionFilter === 'afternoon') {
+      isSessionMatch = rowTime >= 13 && rowTime < 24; // Afternoon: 01:00 PM - 12:00 AM
+    }
+
+    return isDateMatch && isZoneMatch && isSessionMatch;
+  });
+
+  // Ambil data dari kolom A-F (indeks 0-5) tanpa memotong kode zona
+  const modifiedData = filteredData.map(row => row.slice(0, 6));
+  
+  return modifiedData; // Kembalikan data yang sudah difilter
+}
+
+function updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQuantity) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const data = sheet.getDataRange().getValues();
+  
+  // Cari row berdasarkan seluruh isi unique code (kolom ZONE)
+  const rowIndex = data.findIndex(row => row[4] === uniqueCode);
+  
+  if (rowIndex !== -1) {
+    // Jika ditemukan, perbarui kolom QTY (kolom D)
+    sheet.getRange(rowIndex + 1, 4).setValue(newQuantity); // Update kolom QTY
+  } else {
+    throw new Error('Unique code not found.');
+  }
+}
+
+function getDataSO() {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const data = sheet.getDataRange().getValues(); // Fetch all data from the sheet
+  
+  const currentDate = new Date();
+  const currentDateString = currentDate.toDateString();
+  const currentHour = currentDate.getHours();
+
+  // Determine the session based on the current time
+  let session;
+  if (currentHour >= 1 && currentHour < 13) {
+    session = 'morning'; // Session 1: 01:00 AM - 12:00 PM
+  } else if (currentHour >= 13 && currentHour < 24) {
+    session = 'afternoon'; // Session 2: 01:00 PM - 12:00 AM
+  } else {
+    return {}; // If outside of work hours, return an empty object
+  }
+  
+  const result = {};
+
+  data.forEach(row => {
+    const rowDate = new Date(row[5]).toDateString(); // Column F contains the date
+    const rowTime = new Date(row[5]).getHours(); // Extract the hour from the timestamp
+    const mid = row[1]; // Column B for MID
+    const productName = row[2]; // Column C for Product Name
+    let quantity = row[3]; // Column D for Quantity
+    const zone = row[4]; // Column E for Zone
+    const conv = getConv(productName); // Fetch the conversion rate
+
+    // Filter data by current date and session
+    if (rowDate === currentDateString) {
+      if ((session === 'morning' && rowTime >= 1 && rowTime < 13) || 
+          (session === 'afternoon' && rowTime >= 13 && rowTime < 24)) {
+        
+        // Apply the conversion based on the zone
+        if (zone.startsWith("ZONAA") || zone.startsWith("ZONAB") || zone.startsWith("ZONAR")) {
+          quantity *= conv;
+        } else if (zone.startsWith("ZONAE")) {
+          quantity *= 1;
+        }
+
+        // Aggregate the quantity per product name
+        if (result[productName]) {
+          result[productName] += quantity;
+        } else {
+          result[productName] = quantity;
+        }
+      }
+    }
+  });
+
+  return result; // Return the aggregated result
+}
+
+function getConv(productName) {
+  const conversionTable = {
+    'L1': 64,
+    'M1': 64,
+    'XL1': 49,
+    'L28': 32,
+    'M32': 32,
+    'XL26': 32,
+    'L8': 45,
+    'XL7': 9,
+    'L11': 56,
+    'M11': 56,
+    'XL11': 42
+  };
+  
+  return conversionTable[productName] || 1; // Default conversion rate is 1 if not found
+}
+
+function submitDataWithRemarksAndSession(data, remarks, dateWithTime, session) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName("SO FINAL");
+  const existingData = sheet.getRange('A:B').getValues(); // Fetch date and session columns
+
+  // Extract the date from dateWithTime (format: DD/MM/YYYY HH:MM:SS)
+  const submittedDate = dateWithTime.split(' ')[0]; // Get only the date part
+
+  // Check if data for the same date and session already exists
+  const isDuplicate = existingData.some(row => {
+    const existingDate = row[0].toString().split(' ')[1]; // Get date from the sheet
+    const existingSession = row[1]; // Get session (morning/afternoon) from the sheet
+    return existingDate === submittedDate && existingSession === session;
+  });
+
+  // If a duplicate is found, return this information
+  if (isDuplicate) {
+    return { isDuplicate: true, session: session };
+  }
+
+  // If no duplicate, append the new data
+  let lastRow = sheet.getLastRow(); // Find the last row in the sheet
+  
+  lastRow += 3; // Add 3 blank rows before appending new data
+
+  // Insert a new row with the date and session
+  sheet.getRange(lastRow + 1, 1).setValue(`Date: ${dateWithTime}`);
+  sheet.getRange(lastRow + 1, 2).setValue(session); // Insert the session (morning/afternoon)
+
+  // Add column headers
+  sheet.getRange(lastRow + 2, 1, 1, 6).setValues([["MID", "NAME", "CONV", "QTY SO", "QTY SAP", "DIFF SO-SAP"]]);
+
+  // Insert the data into the sheet
+  const dataRange = sheet.getRange(lastRow + 3, 1, data.length, 6);
+  const dataValues = data.map(item => [item.MID, item.Name, item.CONV, item.qtySO, item.qtySAP, item.diffSO_SAP]);
+  dataRange.setValues(dataValues);
+
+  // Add a row for remarks after the data
+  const remarksRowIndex = lastRow + data.length + 4; 
+  sheet.getRange(remarksRowIndex, 1, 1, 6).merge();  // Merge the first 6 columns
+  sheet.getRange(remarksRowIndex, 1).setValue(`Remarks: ${remarks}`);
+
+  // Apply borders around the newly added data
+  const totalRows = data.length + 3; // Include the date, session, and header rows
+  const borderRange = sheet.getRange(lastRow + 1, 1, totalRows, 6);
+  borderRange.setBorder(true, true, true, true, true, true);
+
+  return { isDuplicate: false, session: session }; // Return success
+}
+
+function getDiffSoSapByDate(selectedDate) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const data = sheet.getDataRange().getValues(); // Get all data from the sheet
+
+  const result = {};
+  const targetDateString = `Date: ${selectedDate}`;  // Format the selected date string
+
+  // Loop through the data to find the row with the selected date
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().startsWith(targetDateString)) {
+      // Find the header row (two rows after the date header)
+      const headerRow = i + 1;
+      for (let j = headerRow + 1; j < data.length; j++) {
+        // Stop at the next date header or blank row
+        if (!data[j][0] || data[j][0].toString().startsWith('Date:')) break;
+
+        // Collect DIFF SO-SAP values (assuming 6th column is DIFF SO-SAP)
+        const productName = data[j][1];  // Assuming second column is the product name
+        const diffSoSap = data[j][5];    // Assuming sixth column is DIFF SO-SAP
+        result[productName] = diffSoSap;
+      }
+      break; // Exit loop once the date has been found and data collected
+    }
+  }
+
+  return result;  // Return the DIFF SO-SAP data for the selected date
+}
+
+function getDataSOWithRemarksByDate(selectedDate, session) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data
+
+  const filteredData = [];
+  let remarks = '';
+  const targetDateString = `Date: ${selectedDate}`;  // Membentuk string untuk memeriksa tanggal
+  
+  // Looping untuk mencari baris yang cocok dengan tanggal dan sesi
+  for (let i = 0; i < dataRange.length; i++) {
+    const dateCell = dataRange[i][0] ? dataRange[i][0].toString() : '';  // Ambil nilai dari kolom pertama (Tanggal dan waktu)
+    const sessionCell = dataRange[i][1] ? dataRange[i][1].toString().toLowerCase() : '';  // Ambil nilai dari kolom kedua (Sesi)
+
+    // Memeriksa apakah tanggal dan sesi cocok
+    if (dateCell.includes(targetDateString) && sessionCell.includes(session)) {
+      // Ambil data setelah menemukan tanggal dan sesi yang cocok
+      for (let j = i + 2; j < dataRange.length && dataRange[j][0] !== ''; j++) {
+        filteredData.push(dataRange[j]);  // Simpan baris data yang relevan
+      }
+
+      // Ambil remarks dari dua baris setelah data selesai
+      const remarksRowIndex = i + filteredData.length + 3;
+      remarks = dataRange[remarksRowIndex] && dataRange[remarksRowIndex][0]
+        ? dataRange[remarksRowIndex][0].replace('Remarks: ', '')
+        : '';
+      break;
+    }
+  }
+
+  return {
+    data: filteredData,
+    remarks: remarks
+  };
+}
+
+function getDiffPreviousByDate(selectedDate) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data dari A hingga F (kolom ke-6)
+  
+  const diffPreviousData = [];
+
+  // Looping melalui semua baris di dataRange untuk mencari tanggal yang sesuai
+  for (let i = 0; i < dataRange.length; i++) {
+    // Memeriksa apakah ada baris dengan tanggal yang cocok dengan tanggal dari FILTER DIFF PREVIOUS
+    if (dataRange[i][0].toString().includes(`Date: ${selectedDate}`)) {
+      // Mengambil nilai "DIFF PREVIOUS" dari kolom F (kolom ke-6, indeks 5) setelah menemukan tanggal yang cocok
+      for (let j = i + 2; j < dataRange.length && dataRange[j][0] !== ''; j++) {
+        diffPreviousData.push(dataRange[j][5]); // Kolom F berada pada indeks ke-5
+      }
+      break;
+    }
+  }
+
+  return {
+    data: diffPreviousData
+  };
+}
+
+function getChartData() {
+  const sheet = SpreadsheetApp.openById('1ynFYdKg2XdAdTQWw_U52wf_dvPiJWHUCd09mcu37d8k').getSheetByName('Taker');
+  const data = sheet.getDataRange().getValues();
+  
+  // Remove the header
+  data.shift();
+
+  // MID values to track
+  const mids = ['L1', 'M1', 'XL1', 'L28', 'M32', 'XL26', 'L8', 'XL7', 'L11', 'M11', 'XL11'];
+  const colors = ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                  'rgba(199, 199, 199, 1)', 'rgba(83, 102, 255, 1)', 'rgba(23, 206, 86, 1)',
+                  'rgba(200, 192, 132, 1)', 'rgba(199, 100, 64, 1)'];
+  
+  // Helper function to format date as 'dd-MM-yyyy'
+  const formatDate = date => {
+    if (date instanceof Date && !isNaN(date)) {
+      return Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd-MM-yyyy');
+    }
+    return null; // Ignore invalid dates
+  };
+
+  // Prepare an object to aggregate data by MID and date
+  const dateData = mids.reduce((acc, mid) => {
+    acc[mid] = {}; // Initialize empty object for each MID
+    return acc;
+  }, {});
+
+  // Aggregate the quantities by MID and exact date
+  data.forEach(row => {
+    const mid = row[2]; // MID is in column C
+    const quantity = row[3]; // Quantity is in column D
+    const rawDate = new Date(row[5]); // Column F contains the date
+    const formattedDate = formatDate(rawDate);
+
+    if (formattedDate) {
+      if (!dateData[mid][formattedDate]) {
+        dateData[mid][formattedDate] = 0; // Initialize if not present
+      }
+      dateData[mid][formattedDate] += quantity; // Sum the quantities for each date
+    }
+  });
+
+  // Extract all unique dates, sorted in chronological order
+  const uniqueDates = [...new Set(data.map(row => formatDate(new Date(row[5]))).filter(date => date))]
+                       .sort((a, b) => new Date(a.split('-').reverse().join('-')) - new Date(b.split('-').reverse().join('-')));
+
+  // Create a dataset object for each MID
+  const datasets = mids.map((mid, index) => {
+    const quantities = uniqueDates.map(date => dateData[mid][date] || 0); // Use 0 if no data for that date
+
+    return {
+      label: mid,
+      data: quantities,
+      type: 'line',
+      borderColor: colors[index],
+      backgroundColor: colors[index].replace('1)', '0.2)'), // Adjust transparency
+      borderWidth: 2
+    };
+  });
+
+  // Combine all datasets into one data object
+  return {
+    labels: uniqueDates, // Use the formatted dates as labels
+    datasets: datasets
+  };
+}
+
+function getSheetData() {
+  const sheet = SpreadsheetApp.openById('1ynFYdKg2XdAdTQWw_U52wf_dvPiJWHUCd09mcu37d8k').getSheetByName('Taker');
+  
+  // Get data starting from the third row (skipping the first two header rows)
+  const dataRange = sheet.getRange(3, 1, sheet.getLastRow() - 2, sheet.getLastColumn());
+  const data = dataRange.getValues(); // Fetch all data starting from the third row
+
+  // Transform data into an array of objects
+  const transformedData = data.map(row => {
+    let waktu = '';
+
+    // Check if row[5] contains a valid Date
+    if (row[5] instanceof Date) {
+      // Format the date and time for 'waktu'
+      const dayFormatted = Utilities.formatDate(row[5], Session.getScriptTimeZone(), "dd-MM-yyyy"); // Format date
+      const timeFormatted = Utilities.formatDate(row[5], Session.getScriptTimeZone(), "HH:mm:ss"); // Format time
+      waktu = `${dayFormatted} ${timeFormatted}`; // Combine date and time into one string
+    } else {
+      waktu = 'Invalid time'; // Fallback in case 'row[5]' is not a valid Date
+    }
+
+    return {
+      checker: row[0] || '',  // Assuming 'Checker' is in the first column
+      gate: row[1] || '',     // Assuming 'Gate' is in the second column
+      product: row[2] || '',  // Assuming 'Product' is in the third column
+      quantity: row[3] || 0,  // Assuming 'Quantity' is in the fourth column (default to 0 if empty)
+      waktu: waktu            // Formatted 'waktu' value (either a valid date/time or 'Invalid time')
+    };
+  });
+
+  return transformedData;
+}
+
+function getDataByDateAndSession(selectedDate, session) {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const data = sheet.getDataRange().getValues();
+  
+  const inputDate = new Date(selectedDate);
+
+  // Filter data based on the selected date and session
+  const filteredData = data.filter(row => {
+    const rowDate = new Date(row[5]);
+    const isDateMatch = rowDate.toDateString() === inputDate.toDateString();
+
+    const currentHour = new Date(row[5]).getHours();
+    const isSessionMatch = (session === 'morning' && currentHour >= 1 && currentHour < 13) || 
+                           (session === 'afternoon' && currentHour >= 13 && currentHour < 24);
+
+    return isDateMatch && isSessionMatch;
+  });
+
+  const modifiedData = filteredData.map(row => {
+    return {
+      lane: row[0],             // Lane (e.g., 'LANE 1A')
+      productName: row[2] || 'N/A', // Product name
+      quantity: row[3],          // Quantity
+      date: row[5]               // Date information
+    };
+  });
+
+  return modifiedData;  // Return the filtered data
+}
+
+// Fungsi untuk memproses login
+function processLogin(username, password) {
+  // Daftar pengguna dan kata sandi
+  var users = {
+    "checker": "123",
+    "admin": "123",
+    "staff": "123"
+  };
+  
+  // Cek apakah username dan password cocok
+  if (users[username] && users[username] === password) {
+    return 'success';
+  } else {
+    return 'failure';
+  }
+}
+
+
+function getZoneData() {
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const data = sheet.getDataRange().getValues();
+  
+  const zones = [];
+  const currentTime = new Date(); // Get current date and time
+  const currentDate = currentTime.toDateString(); // Get current date string
+  const currentHour = currentTime.getHours(); // Get the current hour
+  
+  // Determine the session based on the current time
+  let session;
+  if (currentHour >= 1 && currentHour < 13) {
+    session = 'morning'; // Session 1: 01:00 AM - 12:00 PM
+  } else if (currentHour >= 13 && currentHour < 24) {
+    session = 'afternoon'; // Session 2: 01:00 PM - 12:00 AM
+  } else {
+    session = 'out-of-hours'; // If outside of work hours
+  }
+  
+  let hasValidData = false;  // Flag to track if we find matching data for the session
+
+  // Iterate through the data and check for row[4] and row[5] conditions
+  for (let i = 0; i < data.length; i++) {
+    const rowValue = data[i][4].toString().substring(0, 5);  // Get first 5 characters of row[4]
+    const rowDateTime = new Date(data[i][5]);  // Convert row[5] to a date object
+    const rowDate = rowDateTime.toDateString();  // Get date part of row[5]
+    const rowHour = rowDateTime.getHours();  // Get hour part of row[5]
+
+    // Check if row[5] date matches current date and falls within the session
+    if (rowDate === currentDate) {
+      if (session === 'morning' && rowHour >= 1 && rowHour < 13) {
+        hasValidData = true;
+        if (rowValue === 'ZONAA' || rowValue === 'ZONAB' || rowValue === 'ZONAE') {
+          zones.push(rowValue);
+        }
+      } else if (session === 'afternoon' && rowHour >= 13 && rowHour < 24) {
+        hasValidData = true;
+        if (rowValue === 'ZONAA' || rowValue === 'ZONAB' || rowValue === 'ZONAE') {
+          zones.push(rowValue);
+        }
+      }
+    }
+  }
+
+  // If no valid rows are found for the session, return an empty zones array
+  return { zones, session, hasValidData };  // Include hasValidData in the response
+}
+
+/* Function INBOUND RAW */
+// Fungsi untuk menghasilkan Unique ID
+function generateUniqueId(zone) {
+  const pattern = zone === 'A' ? 'ZONAA-xxxx-4xxx-yxxx-xxxxxxxxxxxx' : 'ZONAB-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  return pattern.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+//BUILDER5
+/**
+ * Mendapatkan status terkini dari setiap lane berdasarkan zona.
+ * @param {string} zone - Zona yang dipilih ('A' atau 'B').
+ * @returns {Object} - Objek dengan key adalah Lane ID dan value adalah jumlah pallet, MID, dan setting saat ini.
+ */
+function getLaneStatus(zone) {
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
+  const sheet = ss.getSheetByName('LANE STATUS'); // Ganti dengan nama sheet yang sesuai
+  const data = sheet.getDataRange().getValues(); // Asumsi baris pertama adalah header
+
+  const laneStatus = {};
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const laneId = row[0];    // Kolom A: Lane ID
+    const laneZone = row[1];  // Kolom B: Zona
+    const currentPallet = row[2]; // Kolom C: Jumlah Pallet
+    const currentMID = row[3]; // Kolom D: MID (Kolom tambahan yang menyimpan MID)
+    const currentSetting = row[4]; // Kolom E: Setting (Kolom tambahan untuk setting)
+
+    if (laneZone === zone) {
+      laneStatus[laneId] = {
+        currentPallet,
+        currentMID,
+        currentSetting
+      };
+    }
+  }
+  return laneStatus;
+}
+
+/**
+ * Memproses data yang disubmit dari frontend.
+ * @param {Object} data - Data yang dikirim dari frontend.
+ * @returns {Object} - Respons dari backend.
+ */
+function submitDataInboundRawFullPallet(data) {
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
+  const laneSheet = ss.getSheetByName('LANE STATUS'); // Sheet untuk status lane
+  const logSheet = ss.getSheetByName('INBOUND RAW'); // Sheet untuk mencatat log
+  const dataSheet = ss.getSheetByName('Data'); // Sheet untuk data form (opsional)
+
+  // Destructuring data from the submission
+  const { zone, mid, lane, setting, stopwatchTime } = data;
+
+  // Validate the incoming data
+  if (!zone || !mid || !lane || !setting) {
+    return { success: false, message: 'Data tidak lengkap.' };
+  }
+
+  // Fetch the data from the LANE STATUS sheet
+  const laneData = laneSheet.getDataRange().getValues();
+  let targetRow = -1;
+  let currentMID = ""; // To store the existing MID in the lane, if any
+
+  // Search for the row that corresponds to the selected lane and zone
+  for (let i = 1; i < laneData.length; i++) { // Start from 1 to skip the header row
+    const row = laneData[i];
+    const laneId = row[0];  // Lane ID (Column A)
+    const laneZone = row[1];  // Zone (Column B)
+    currentMID = row[3];  // MID (Column D)
+    
+    if (laneId === lane && laneZone === zone) {
+      targetRow = i + 1;  // Store the target row index (+1 for getRange compatibility)
+      break;
+    }
+  }
+
+  // If the lane is not found in the LANE STATUS sheet, return an error
+  if (targetRow === -1) {
+    return { success: false, message: `Lane ${lane} tidak ditemukan di Zona ${zone}.` };
+  }
+
+  // Check if there is already a different MID assigned to the lane
+  if (currentMID && currentMID !== mid) {
+    return { success: false, message: `Lane ${lane} sudah memiliki MID ${currentMID}. Tidak bisa menambahkan MID yang berbeda (${mid}).` };
+  }
+
+  // Fetch the current pallet count and maximum pallet count
+  const currentPallet = laneSheet.getRange(targetRow, 3).getValue();  // Column C: Current Pallet Count
+  const maxPallet = getMaxPallet(lane);  // Get the max pallet count for the lane
+
+  // Calculate the new pallet count after the addition
+  const newPalletCount = currentPallet + parseInt(setting);
+
+  // Check if the new pallet count exceeds the lane's capacity
+  if (newPalletCount > maxPallet) {
+    return { success: false, message: `Penambahan ${setting} pallet melebihi kapasitas Lane ${lane} (${currentPallet}/${maxPallet}).` };
+  }
+
+  // Update the pallet count, MID, and setting in the LANE STATUS sheet
+  laneSheet.getRange(targetRow, 3).setValue(newPalletCount);  // Update the pallet count (Column C)
+  laneSheet.getRange(targetRow, 4).setValue(mid);  // Update the MID (Column D)
+  laneSheet.getRange(targetRow, 5).setValue(setting);  // Update the setting (Column E)
+
+  // Tambahkan tanggal submit di Kolom F
+  const submissionDate = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+  laneSheet.getRange(targetRow, 6).setValue(submissionDate); // Kolom F: Tanggal Submit
+
+
+  // Generate a unique ID for this submission
+  const uniqueId = generateUniqueId(zone);
+
+  // Log the submission in the INBOUND RAW sheet
+  const date = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+  const time = Utilities.formatDate(new Date(), "GMT+7", "HH:mm:ss");
+  logSheet.appendRow([uniqueId, date, time, zone, mid, lane, setting, stopwatchTime]);
+
+  // Optionally, add the data to another sheet for form data (if applicable)
+  if (dataSheet) {
+    dataSheet.appendRow([uniqueId, date, time, zone, mid, lane, setting, stopwatchTime]);
+  }
+
+  // Return a success response
+  return { success: true, uniqueId, date, time };
+}
+
+/**
+ * Fungsi untuk menghasilkan Unique ID
+ * @param {string} zone - Zona ('A' atau 'B')
+ * @returns {string} - Unique ID sesuai format
+ */
+function generateUniqueId(zone) {
+  const pattern = zone === 'A' ? 'ZONAA-xxxx-4xxx-yxxx-xxxxxxxxxxxx' : 'ZONAB-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  return pattern.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+/**
+ * Menentukan kapasitas maksimal berdasarkan Lane ID.
+ * @param {string} laneId - Lane ID (misalnya, '11A', '10B').
+ * @returns {number} - Kapasitas maksimal pallet untuk lane tersebut.
+ */
+function getMaxPallet(laneId) {
+  const specialLanesA = ['11A', '17A', '23A'];
+  const specialLanesB = ['10B', '22B'];
+  if (specialLanesA.includes(laneId) || specialLanesB.includes(laneId)) {
+    return 30;
+  }
+  return 75;
+}
+
+function unlockForm() {
+  // Buka kunci semua input form yang terkunci
+  const formElements = document.querySelectorAll('#palletForm select, #palletForm input');
+  formElements.forEach(element => {
+    element.disabled = false; // Aktifkan kembali semua input yang sebelumnya terkunci
+  });
+
+  // Sembunyikan tombol unlock setelah diklik
+  document.getElementById('unlockButton').style.display = 'none';
+  
+  // Kembalikan focus pada form
+  document.getElementById('palletForm').focus();
+}
+
+/**
+ * Retrieves lane status data from the specified Google Sheets spreadsheet.
+ *
+ * @return {Array} An array of lane status objects.
+ */
+function getLaneStatusData() {
+  const spreadsheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+  const sheetName = 'LANE STATUS';
+  
+  // Open the spreadsheet and select the sheet
+  const ss = SpreadsheetApp.openById(spreadsheetId);
+  const sheet = ss.getSheetByName(sheetName);
+  
+  if (!sheet) {
+    throw new Error(`Sheet "${sheetName}" not found in spreadsheet.`);
+  }
+  
+  // Get all data from the sheet
+  const data = sheet.getDataRange().getValues();
+  
+  // Extract headers
+  const headers = data[0];
+  
+  // Define the MID values to filter
+  const validMIDs = ['L1', 'M1', 'XL1', 'L28', 'M32', 'XL26', 'L8', 'XL7', 'L11', 'M11', 'XL11'];
+  
+  // Process data rows
+  const laneStatusData = [];
+  
+  for (let i = 1; i < data.length; i++) { // Start from 1 to skip headers
+    const row = data[i];
+    const laneID = row[0];
+    const zona = row[1];
+    const quantity = row[2];
+    const mid = row[3];
+    const setting = row[4];
+    const date = row[5];
+    
+    // Validate MID
+    if (validMIDs.includes(mid)) {
+      laneStatusData.push({
+        laneID: laneID,
+        zona: zona,
+        quantity: quantity,
+        mid: mid,
+        setting: setting,
+        date: Utilities.formatDate(new Date(date), Session.getScriptTimeZone(), 'yyyy-MM-dd')
+      });
+    }
+  }
+  
+  return laneStatusData;
+}
+
+
+
+/**
+ * Fungsi pembulatan kustom.
+ * Jika desimal >= 0.4, bulatkan ke atas. Jika < 0.4, bulatkan ke bawah.
+ *
+ * @param {number} num - Angka yang akan dibulatkan.
+ * @return {number} Angka yang telah dibulatkan.
+ */
+function customRound(num) {
+  const floored = Math.floor(num);
+  const decimal = num - floored;
+  return decimal >= 0.4 ? floored + 1 : floored;
+}
+
+/**
+ * Fungsi untuk mengambil data baru yang akan ditampilkan di tabel baru.
+ * Mengambil data dari sheet "LANE STATUS", mengelompokkan berdasarkan MID (NAME PRODUCT),
+ * menjumlahkan Quantity, dan menghitung ACTUAL STOCK / PALLET serta ACTUAL STOCK / BOX
+ * dengan penyesuaian untuk Zona "E" atau "ECERAN" dan pembulatan kustom.
+ *
+ * @return {Array} Array of Arrays yang berisi [MID, NAME PRODUCT, ACTUAL STOCK / PALLET, ACTUAL STOCK / BOX]
+ */
+function getNewStockData() {
+  // Definisikan urutan produk sesuai dengan nama produk di spreadsheet
+  const orderedProducts = [
+    "L11",
+    "L1",
+    "L28",
+    "L8",
+    "M11",
+    "M1",
+    "M32",
+    "XL11",
+    "XL1",
+    "XL26",
+    "XL7"
+  ];
+
+  // Definisikan mapping dari nama produk ke MID dan converter
+  const productMappings = {
+    "L11": { mid: "1150051", converter: 56 },
+    "L1": { mid: "1050051", converter: 64 },
+    "L28": { mid: "50055", converter: 32 },
+    "L8": { mid: "50052", converter: 45 },
+    "M11": { mid: "1150046", converter: 56 },
+    "M1": { mid: "1050046", converter: 64 },
+    "M32": { mid: "50050", converter: 32 },
+    "XL11": { mid: "1150056", converter: 48 },
+    "XL1": { mid: "1050056", converter: 49 },
+    "XL26": { mid: "50060", converter: 32 },
+    "XL7": { mid: "50057", converter: 45 } // Diperbarui dari 9 menjadi 45
+  };
+
+  // Inisialisasi map untuk menyimpan jumlah boxes per MID
+  const stockMap = {};
+  orderedProducts.forEach(productName => {
+    stockMap[productName] = {
+      boxes: 0
+    };
+  });
+
+  // Buka sheet "LANE STATUS"
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('LANE STATUS');
+  const data = sheet.getDataRange().getValues();
+
+  // Iterasi melalui setiap baris data, mulai dari baris kedua jika ada header
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    
+    const zona = row[1] ? row[1].toString().trim().toUpperCase() : ''; // Kolom B: Zona
+    const productName = row[3] ? row[3].toString().trim() : ''; // Kolom D: MID (Nama Produk)
+    const quantity = parseInt(row[2], 10) || 0; // Kolom C: Quantity
+
+    if (orderedProducts.includes(productName)) {
+      const mapping = productMappings[productName];
+      if (!mapping) {
+        // Jika mapping tidak ditemukan, lewati produk ini
+        continue;
+      }
+      const converter = mapping.converter;
+
+      if (zona === "E" || zona === "ECERAN") {
+        // Jika Zona adalah E atau ECERAN, tambahkan ke boxes langsung
+        stockMap[productName].boxes += quantity;
+      } else {
+        // Jika Zona lain (misalnya, A atau B), konversi pallets ke boxes dan tambahkan
+        stockMap[productName].boxes += quantity * converter;
+      }
+    }
+  }
+
+  // Siapkan data untuk tabel baru sesuai urutan produk
+  const newStockData = orderedProducts.map(productName => {
+    const mapping = productMappings[productName];
+    if (!mapping) {
+      // Jika mapping tidak ditemukan, lewati produk ini
+      return [productName, "Mapping Tidak Ditemukan", 0, 0];
+    }
+
+    const mid = mapping.mid;
+    const converter = mapping.converter;
+    const totalBoxes = stockMap[productName].boxes;
+    const palletsUnrounded = totalBoxes / converter;
+    const totalPallets = customRound(palletsUnrounded); // Pembulatan kustom
+
+    // Pastikan data valid
+    const validPallet = Number.isInteger(totalPallets) && totalPallets >= 0;
+    const validBox = Number.isInteger(totalBoxes) && totalBoxes >= 0;
+
+    if (validPallet && validBox) {
+      return [mid, productName, totalPallets, totalBoxes];
+    } else {
+      // Jika data tidak valid, tetapkan nilai 0
+      return [mid, productName, 0, 0];
+    }
+  });
+
+  return newStockData;
+}
+
+
+
+/**
+ * Fungsi sementara untuk mengatur kata sandi admin awal.
+ * Jalankan fungsi ini sekali saja dan hapus setelahnya.
+ */
+/* 
+function initializeAdminPassword() {
+  var initialPassword = 'Yaitu'; // Ganti dengan kata sandi yang diinginkan
+  setInitialPassword(initialPassword);
+}
+*/
+
+
+const SALT = 'Yaitu'; // Ganti dengan nilai salt yang kuat dan acak
+
+/**
+ * Function to save the setting value with password verification
+ * @param {string} settingValue - The setting value selected by the admin
+ * @param {string} password - The admin password entered by the user
+ * @returns {Object} - Result object indicating success or failure
+ */
+function saveSetting(settingValue, password) {
+  try {
+    // Verify the password
+    if (!verifyPassword(password)) {
+      return { success: false, message: 'Incorrect password. Access denied.' };
+    }
+
+    // Validate settingValue
+    const validSettings = ['1', '2']; // Tambahkan nilai yang valid sesuai kebutuhan
+    if (!validSettings.includes(settingValue)) {
+      return { success: false, message: 'Invalid setting value.' };
+    }
+
+    var scriptProperties = PropertiesService.getScriptProperties();
+    scriptProperties.setProperty('currentSetting', settingValue);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: 'Failed to save setting: ' + error.message };
+  }
+}
+
+/**
+ * Function to get the current setting value
+ * @returns {string} - The current setting value or empty string if not set
+ */
+function getSetting() {
+  try {
+    var scriptProperties = PropertiesService.getScriptProperties();
+    var settingValue = scriptProperties.getProperty('currentSetting');
+    return settingValue || ""; // Return empty string if not set
+  } catch (error) {
+    return "";
+  }
+}
+
+/**
+ * Function to verify the admin password
+ * @param {string} password - The password to verify
+ * @returns {boolean} - True if password is correct, false otherwise
+ */
+function verifyPassword(password) {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var storedHashedPassword = scriptProperties.getProperty('adminPasswordHash');
+
+  if (!storedHashedPassword) {
+    throw new Error('Admin password has not been set. Please set it manually.');
+  }
+
+  // Hash the provided password with salt and compare
+  var saltedPassword = SALT + password;
+  var hashedPassword = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, saltedPassword));
+  return hashedPassword === storedHashedPassword;
+}
+
+/**
+ * Function to set the initial admin password
+ * Run this function manually once to set the admin password
+ * @param {string} initialPassword - The initial password to set
+ */
+function setInitialPassword(initialPassword) {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var saltedPassword = SALT + initialPassword;
+  var hashedPassword = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, saltedPassword));
+  scriptProperties.setProperty('adminPasswordHash', hashedPassword);
+}
+
+
+
+/* BUILDER7 */
+
+// Function to get the data for Lane Status
+function getDataLaneStatus() {
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
+  const sheet = ss.getSheetByName('LANE STATUS');
+  const data = sheet.getDataRange().getValues();
+
+  // Helper function to format dates into 'YYYY-MM-DD' format
+  function formatDateToString(date) {
+    if (date instanceof Date) {
+      return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    }
+    return date; // Jika bukan objek Date, kembalikan apa adanya
+  }
+
+  // Konversi kolom Date ke format string yang mudah ditampilkan
+  const formattedData = data.map(row => {
+    if (row[5] instanceof Date) {
+      row[5] = formatDateToString(row[5]); // Konversi kolom Date (indeks 5) ke string
+    }
+    return row;
+  });
+
+  return formattedData; // Kembalikan data yang sudah diformat
+}
+
+// Function to move data from Source to Target and log it to the "MOVING LOG" sheet
+function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane) {
+  try {
+    const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Replace with your Spreadsheet ID
+    const sheet = ss.getSheetByName('LANE STATUS'); // Replace with your LANE STATUS sheet
+    if (!sheet) {
+      throw new Error('Sheet "LANE STATUS" tidak ditemukan.');
+    }
+    const data = sheet.getDataRange().getValues();
+    
+    let sourceRowIndex = -1;
+    let targetRowIndex = -1;
+
+    // Find the source and target rows
+    for (let i = 1; i < data.length; i++) { // Start from 1 to skip the header
+      let row = data[i];
+      if (row[0].trim().toUpperCase() === sourceLane.trim().toUpperCase() && row[1].trim().toUpperCase() === sourceZona.trim().toUpperCase()) {
+        sourceRowIndex = i + 1; // Spreadsheet rows start from 1
+      }
+      if (row[0].trim().toUpperCase() === targetLane.trim().toUpperCase() && row[1].trim().toUpperCase() === targetZona.trim().toUpperCase()) {
+        targetRowIndex = i + 1;
+      }
+    }
+
+    if (sourceRowIndex === -1) {
+      throw new Error(`Sumber data tidak ditemukan untuk Zona ${sourceZona} dan Lane ${sourceLane}.`);
+    }
+
+    if (targetRowIndex === -1) {
+      throw new Error(`Target data tidak ditemukan untuk Zona ${targetZona} dan Lane ${targetLane}.`);
+    }
+
+    // Get the data from the source
+    const sourceData = data[sourceRowIndex - 1];
+    const [laneSumber, zonaSumber, quantitySumber, midSumber, settingSumber, dateSumber] = sourceData;
+
+    // Validate if there is data to be moved (Quantity and MID must be present)
+    if (!quantitySumber || !midSumber) {
+      throw new Error(`Tidak ada data Quantity atau MID yang dapat dipindahkan dari Zona ${sourceZona} dan Lane ${sourceLane}.`);
+    }
+
+    // Get the data from the target
+    const targetData = data[targetRowIndex - 1];
+    const [laneTargetCheck, zonaTargetCheck, quantityTarget, midTarget, settingTarget, dateTarget] = targetData;
+
+    // Do not overwrite if the target lane has data
+    if (quantityTarget || midTarget || settingTarget || dateTarget) {
+      throw new Error(`Lane Target ${targetLane} sudah memiliki data. Tidak dapat memindahkan.`);
+    }
+
+    // Update the data at the target
+    sheet.getRange(targetRowIndex, 3).setValue(quantitySumber); // Quantity
+    sheet.getRange(targetRowIndex, 4).setValue(midSumber);       // MID
+    sheet.getRange(targetRowIndex, 5).setValue(settingSumber);   // Setting
+    sheet.getRange(targetRowIndex, 6).setValue(dateSumber);      // Date
+
+    // Clear the data at the source (Quantity and MID)
+    sheet.getRange(sourceRowIndex, 3).setValue(''); // Quantity
+    sheet.getRange(sourceRowIndex, 4).setValue(''); // MID
+    sheet.getRange(sourceRowIndex, 5).setValue(''); // Setting
+    sheet.getRange(sourceRowIndex, 6).setValue(''); // Date
+
+    // Log the move to the "MOVING LOG" sheet
+    const logSheet = ss.getSheetByName('MOVING LOG') || ss.insertSheet('MOVING LOG');
+    
+    // If the log sheet is empty, add headers
+    if (logSheet.getLastRow() === 0) {
+      logSheet.appendRow(['Timestamp', 'Zona Sumber', 'Lane Sumber', 'Zona Target', 'Lane Target', 'Lane', 'Zona', 'Quantity', 'MID', 'Setting', 'Date']);
+    }
+
+    // Log the moved data
+    const timestamp = new Date();
+    logSheet.appendRow([timestamp, zonaSumber, laneSumber, targetZona, targetLane, laneSumber, zonaSumber, quantitySumber, midSumber, settingSumber, dateSumber]);
+
+    Logger.log(`Data berhasil dipindahkan dari ${sourceZona} ${sourceLane} ke ${targetZona} ${targetLane}.`);
+
+    return `Data berhasil dipindahkan dari Zona ${sourceZona} Lane ${sourceLane} ke Zona ${targetZona} Lane ${targetLane}.`;
+  } catch (error) {
+    Logger.log(`Error di moveDataWithLogging: ${error.message}`);
+    throw new Error(`Tidak dapat memindahkan data: ${error.message}`);
+  }
+}
