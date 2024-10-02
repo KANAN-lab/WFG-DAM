@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Main Page</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f8f9fa; /* Background yang lembut */
+    }
+    .container {
+      max-width: 400px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #343a40; /* Warna teks lebih gelap */
+    }
+    .btn-custom {
+      width: 100%; 
+      max-width: 300px;
+      margin-bottom: 15px; /* Spasi antar tombol lebih besar */
+      font-size: 16px; /* Font yang lebih besar */
+      padding: 10px 0;
+      position: relative;
+      transition: all 0.3s ease; /* Transition untuk efek smooth */
+    }
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .btn-success {
+      background-color: #28a745;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+    }
+    /* Smooth transition hover */
+    .btn-custom:hover {
+      transform: scale(1.05);
+      transition: all 0.3s ease-in-out;
+    }
+    .disabled-btn {
+      pointer-events: none;
+      opacity: 0.6;
+      transition: opacity 0.3s ease-in-out; /* Smooth transition untuk disable */
+    }
+
+    /* Animasi Ripple untuk pengecekan data */
+    @keyframes ripple {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4), 0 0 0 10px rgba(0, 123, 255, 0);
+      }
+      70% {
+        box-shadow: 0 0 0 20px rgba(0, 123, 255, 0), 0 0 0 30px rgba(0, 123, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 30px rgba(0, 123, 255, 0), 0 0 0 40px rgba(0, 123, 255, 0);
+      }
+    }
+
+    .checking-data {
+      animation: ripple 1.5s infinite;
+      transition: box-shadow 0.3s ease; /* Smooth transition untuk animasi */
+    }
+
+    /* Blinking Dots Animation */
+    .dots {
+      display: inline-block;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: opacity 0.3s ease; /* Smooth transition */
+    }
+
+    .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin: 0 2px;
+      background-color: #fff;
+      border-radius: 50%;
+      animation: blink 1.4s infinite both;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% {
+        opacity: 0;
+      }
+      40% {
+        opacity: 1;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container text-center">
+    <h1 class="title">STOCK OPNAME</h1>
+    <!-- Set default buttons as disabled -->
+    <button id="zonaA" class="btn btn-primary btn-custom disabled-btn" disabled onclick="navigateTo('StockOpnameZonaA')">Zona A<span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></button>
+    <button id="zonaB" class="btn btn-primary btn-custom disabled-btn" disabled onclick="navigateTo('StockOpnameZonaB')">Zona B<span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></button>
+    <button id="zonaE" class="btn btn-primary btn-custom disabled-btn" disabled onclick="navigateTo('StockOpnameZonaECERAN')">Zona ECERAN<span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></button>
+
+    <button class="btn btn-secondary btn-custom" onclick="navigateTo('CONVERTER')">Final SO</button>
+    <button class="btn btn-warning btn-custom" onclick="navigateTo('ReportSOCOL')">Report SO</button>
+    <button class="btn btn-success btn-custom" onclick="navigateTo('ReportSO')">History SO</button>
+    <button class="btn btn-danger btn-custom back-button" onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
+  </div>
+
+  <script>
+    // Load data from Google Sheets and disable buttons based on conditions
+    function checkAndDisableButtons() {
+      // Tambahkan animasi "checking-data" saat pengecekan dimulai
+      addLoadingAnimation();
+      
+      google.script.run.withSuccessHandler(function(response) {
+        const zones = response.zones;
+        const session = response.session;
+        const hasValidData = response.hasValidData;
+
+        // Remove all disabled states initially (we'll add them as needed)
+        enableAllButtons();
+
+        // Check session: only disable if session is 'morning' or 'afternoon' and there is valid data
+        if ((session === 'morning' || session === 'afternoon') && hasValidData) {
+          // Disable specific buttons based on which zones are present
+          if (zones.includes("ZONAA")) {
+            disableButton('zonaA');
+          }
+          if (zones.includes("ZONAB")) {
+            disableButton('zonaB');
+          }
+          if (zones.includes("ZONAE")) {
+            disableButton('zonaE');
+          }
+        }
+
+        // Hentikan animasi "checking-data" setelah pengecekan selesai
+        removeLoadingAnimation();
+      }).getZoneData();
+    }
+
+    // Function to remove all disabled states (reset buttons to enabled)
+    function enableAllButtons() {
+      const buttons = ['zonaA', 'zonaB', 'zonaE'];
+      buttons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        button.classList.remove('disabled-btn');
+        button.disabled = false;
+        button.classList.add('checking-data'); // Tambahkan animasi ke tombol saat enable
+      });
+    }
+
+    // Function untuk menambahkan animasi loading ke tombol
+    function addLoadingAnimation() {
+      const buttons = ['zonaA', 'zonaB', 'zonaE'];
+      buttons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        button.classList.add('checking-data'); // Tambahkan animasi ke tombol
+      });
+    }
+
+    // Function untuk menghapus animasi loading dari tombol
+    function removeLoadingAnimation() {
+      const buttons = ['zonaA', 'zonaB', 'zonaE'];
+      buttons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        button.classList.remove('checking-data'); // Hapus animasi dari tombol
+      });
+    }
+
+    // Function to disable a specific button and remove its animation
+    function disableButton(buttonId) {
+      const button = document.getElementById(buttonId);
+      button.classList.add('disabled-btn');
+      button.disabled = true;
+      button.classList.remove('checking-data'); // Hapus animasi ketika tombol di-disable
+
+      // Hapus juga elemen span dots
+      const dots = button.querySelector('.dots');
+      if (dots) {
+        dots.remove();
+      }
+    }
+
+    // Run the function to check the data when the page loads
+    window.onload = checkAndDisableButtons;
+
+    // Navigasi ke halaman lain
+    function navigateTo(page) {
+      // Show a loading spinner
+      insertLoadingSpinner();  // Dynamically insert spinner
+      
+      google.script.run.withSuccessHandler(function(html) {
+        // Replace entire document content
+        document.open();
+        document.write(html);
+        document.close();
+      }).loadPage(page);
+    }
+
+    // Function to insert loading spinner into the body
+    function insertLoadingSpinner() {
+      const spinnerHtml = `
+        <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-secondary" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-danger" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-warning" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-info" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-light" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div class="spinner-grow text-dark" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+        </div>
+      `;
+
+      // Append the spinner HTML to the body
+      document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+    }
+
+    // Function to remove the loading spinner after page load
+    function removeLoadingSpinner() {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.remove(); // Remove spinner after the page has loaded
+      }
+    }
+
+  </script>
+
+</body>
+</html>
