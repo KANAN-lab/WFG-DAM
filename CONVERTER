@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .success-alert, .warning-alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1050;
+      display: none;
+    }
+
+    /* Styling for DIFF SO-SAP */
+    .diff-cell {
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .diff-cell.zero {
+      background-color: #d4edda; /* Green background for 0 */
+      color: #155724; /* Dark green text */
+    }
+    .diff-cell.positive {
+      background-color: #f8d7da; /* Red background for > 0 */
+      color: #721c24; /* Dark red text */
+    }
+    .diff-cell.negative {
+      background-color: #f8d7da; /* Red background for < 0 */
+      color: #721c24; /* Dark red text */
+    }
+
+    th, td {
+      white-space: nowrap;
+      vertical-align: middle;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .table th, .table td {
+      width: 14.28%;
+      vertical-align: middle;
+      padding: 2px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .table {
+      border-collapse: separate;
+      border-spacing: 0 2px;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .qty-sap-input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .modal-dialog {
+      max-width: 90%;
+    }
+
+    .remarks-section {
+      margin-top: 10px;
+    }
+
+    .remarks-textarea {
+      width: 100%;
+      resize: none;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container mt-4">
+    <h3 class="text-center mb-4" id="currentMonth"></h3>
+
+    <!-- Flex container for filter and current date -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <!-- Current Date Display -->
+      <div>
+        <div class="font-weight-bold" id="currentDate"></div>
+        <div class="font-weight-bold" id="currentSession"></div> <!-- New element for session -->
+      </div>
+
+      <!-- Filter Date for DIFF PREVIOUS only -->
+      <div class="form-group mb-0">
+        <label for="diffPreviousDate">Filter diff previous by Date:</label>
+        <div class="input-group">
+          <input type="date" id="diffPreviousDate" class="form-control" placeholder="Select Date">
+          <div class="input-group-append">
+            <button class="btn btn-secondary" type="button" id="applyFilterButton">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="table table-bordered table-hover text-center">
+      <thead class="thead-dark">
+        <tr>
+          <th>MID</th>
+          <th>NAME</th>
+          <th>CONV</th>
+          <th>QTY SO</th>
+          <th>QTY SAP</th>
+          <th>DIFF SO-SAP</th>
+          <th>DIFF PREVIOUS</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- Table rows will be populated here -->
+      </tbody>
+    </table>
+
+    <!-- Remarks Section (below the table) -->
+    <div class="remarks-section">
+      <label for="remarksTextarea">Remarks (for surplus or deficit):</label>
+      <textarea id="remarksTextarea" class="remarks-textarea" rows="4" placeholder="Enter any remarks here..."></textarea>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <!-- Back To Dashboard -->
+      <button class="btn btn-danger" onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
+      <!-- Submit Button -->
+      <button id="submitButton" class="btn btn-primary">Submit</button>
+    </div>
+
+    <div class="text-right font-weight-bold">
+      <p id="currentDate"></p>
+    </div>
+
+    <!-- Summary Modal -->
+    <div class="modal fade" id="summaryModal" tabindex="-1" role="dialog" aria-labelledby="summaryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="summaryModalLabel">Summary</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table table-bordered table-hover text-center">
+              <thead class="thead-dark">
+                <tr>
+                  <th>MID</th>
+                  <th>NAME</th>
+                  <th>CONV</th>
+                  <th>QTY SO</th>
+                  <th>QTY SAP</th>
+                  <th>DIFF SO-SAP</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTableBody">
+                <!-- Summary table rows will be populated here -->
+              </tbody>
+            </table>
+            <!-- Display the remarks below the summary table -->
+            <div id="summaryRemarks" class="mt-3">
+              <strong>Remarks:</strong> <span id="summaryRemarksText"></span>
+            </div>
+
+            <!-- Display Session Information in the Summary Modal -->
+            <div id="summarySessionInfo" class="mt-2">
+              <strong>Session:</strong> <span id="sessionDisplayText"></span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id="finalSubmitButton" class="btn btn-primary">Final Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Alert -->
+    <div id="successAlert" class="alert alert-success success-alert" role="alert">
+      Data has been successfully submitted to the spreadsheet!
+    </div>
+
+    <!-- Warning Alert -->
+    <div id="warningAlert" class="alert alert-warning warning-alert" role="alert">
+      Data for this date already exists. Please select a different date.
+    </div>
+
+    <!-- Include SweetAlert Library -->
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+      const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+                          "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+      const currentDate = new Date();
+      document.getElementById("currentMonth").textContent = monthNames[currentDate.getMonth()];
+      
+      const formattedDate = currentDate.toLocaleDateString("en-GB", { day: '2-digit', month: '2-digit', year: 'numeric' });
+      document.getElementById("currentDate").textContent = "Date: " + formattedDate;
+
+      // Display the session below the current date
+      const currentSession = getCurrentSession();
+      document.getElementById("currentSession").textContent = "Session: " + (currentSession === 'morning' ? 'Morning (01:00 - 12:00)' : 'Afternoon (13:00 - 24:00)');
+
+      const products = [
+        { MID: '1150051', Name: 'L11', CONV: 56 },
+        { MID: '1050051', Name: 'L1', CONV: 64 },
+        { MID: '50055', Name: 'L28', CONV: 32 },
+        { MID: '50052', Name: 'L8', CONV: 45 },
+        { MID: '1150046', Name: 'M11', CONV: 56 },
+        { MID: '1050046', Name: 'M1', CONV: 64 },
+        { MID: '50050', Name: 'M32', CONV: 32 },
+        { MID: '1150056', Name: 'XL11', CONV: 42 },
+        { MID: '1050056', Name: 'XL1', CONV: 49 },
+        { MID: '50060', Name: 'XL26', CONV: 32 },
+        { MID: '50057', Name: 'XL7', CONV: 45 }
+      ];
+
+      function getCurrentSession() {
+        const currentHour = new Date().getHours();
+        if (currentHour >= 1 && currentHour < 13) {
+          return 'morning'; // Session 1: 01:00 AM - 12:00 PM
+        } else if (currentHour >= 13 && currentHour < 24) {
+          return 'afternoon'; // Session 2: 01:00 PM - 12:00 AM
+        } else {
+          return null; // Outside of allowed submission times
+        }
+      }
+
+      function populateInitialTable() {
+        const tableBody = document.getElementById("tableBody");
+
+        products.forEach(product => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${product.MID}</td>
+            <td>${product.Name}</td>
+            <td>${product.CONV}</td>
+            <td class="qty-so-cell" data-name="${product.Name}">0</td>
+            <td><input type="number" class="qty-sap-input form-control" data-name="${product.Name}" value="0" /></td>
+            <td class="diff-cell zero">0</td>
+            <td class="diff-previous">N/A</td> <!-- New Column for DIFF PREVIOUS -->
+          `;
+          tableBody.appendChild(row);
+        });
+
+        // Add event listeners to SAP inputs for real-time DIFF SO-SAP calculation
+        document.querySelectorAll('.qty-sap-input').forEach(input => {
+          input.addEventListener('input', function() {
+            const productName = this.dataset.name;
+            const qtySOCell = document.querySelector(`.qty-so-cell[data-name="${productName}"]`);
+            const qtySO = parseFloat(qtySOCell.textContent) || 0;
+            const qtySAP = parseFloat(this.value) || 0;
+            const diffCell = this.parentElement.nextElementSibling;
+            const diff = qtySO - qtySAP;
+
+            diffCell.textContent = diff;
+
+            // Apply conditional styling based on diff value
+            if (diff === 0) {
+              diffCell.className = 'diff-cell zero';
+            } else if (diff > 0) {
+              diffCell.className = 'diff-cell positive';
+            } else {
+              diffCell.className = 'diff-cell negative';
+            }
+          });
+        });
+      }
+
+      function updateQtySO(data) {
+        products.forEach(product => {
+          const qtySO = data[product.Name] || 0;
+          const qtySOCell = document.querySelector(`.qty-so-cell[data-name="${product.Name}"]`);
+          qtySOCell.textContent = qtySO;
+
+          const qtySAP = parseFloat(qtySOCell.nextElementSibling.firstElementChild.value) || 0;
+          const diffCell = qtySOCell.nextElementSibling.nextElementSibling;
+          const diff = qtySO - qtySAP;
+          diffCell.textContent = diff;
+
+          // Apply conditional styling based on diff value
+          if (diff === 0) {
+            diffCell.className = 'diff-cell zero';
+          } else if (diff > 0) {
+            diffCell.className = 'diff-cell positive';
+          } else {
+            diffCell.className = 'diff-cell negative';
+          }
+        });
+      }
+
+      function updateTable() {
+        google.script.run.withSuccessHandler(updateQtySO).getDataSO();
+      }
+
+      // Handle Submit Button Click
+      document.getElementById('submitButton').addEventListener('click', function() {
+        populateSummaryTable();
+        $('#summaryModal').modal('show');
+      });
+
+      // Populate Summary Table
+      function populateSummaryTable() {
+        const summaryTableBody = document.getElementById("summaryTableBody");
+        summaryTableBody.innerHTML = '';
+
+        products.forEach(product => {
+          const qtySO = document.querySelector(`.qty-so-cell[data-name="${product.Name}"]`).textContent;
+          const qtySAP = document.querySelector(`.qty-sap-input[data-name="${product.Name}"]`).value;
+          const diffSO_SAP = parseFloat(qtySO) - parseFloat(qtySAP);
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${product.MID}</td>
+            <td>${product.Name}</td>
+            <td>${product.CONV}</td>
+            <td>${qtySO}</td>
+            <td>${qtySAP}</td>
+            <td>${diffSO_SAP}</td>
+          `;
+          summaryTableBody.appendChild(row);
+        });
+
+        // Display the remarks in the summary
+        const remarks = document.getElementById('remarksTextarea').value;
+        document.getElementById('summaryRemarksText').textContent = remarks ? remarks : 'No remarks provided.';
+
+        // Get the current session and display it in the summary modal
+        const currentSession = getCurrentSession();
+        document.getElementById('sessionDisplayText').textContent = currentSession === 'morning' ? 'Morning (01:00 - 12:00)' : 'Afternoon (13:00 - 24:00)';
+      }
+
+      // Handle Final Submit Button Click
+      document.getElementById('finalSubmitButton').addEventListener('click', function() {
+        const currentSession = getCurrentSession();
+        
+        if (!currentSession) {
+          swal({
+            title: "Submission Error",
+            text: "Submission is only allowed between 01:00 AM and 12:00 PM or 01:00 PM and 12:00 AM.",
+            icon: "error",
+            buttons: {
+              confirm: {
+                className: 'btn btn-danger'
+              }
+            },
+            timer: 3000
+          });
+          return;
+        }
+
+        const data = [];
+
+        products.forEach(product => {
+          const qtySO = document.querySelector(`.qty-so-cell[data-name="${product.Name}"]`).textContent;
+          const qtySAP = document.querySelector(`.qty-sap-input[data-name="${product.Name}"]`).value;
+          const diffSO_SAP = parseFloat(qtySO) - parseFloat(qtySAP);
+
+          data.push({
+            MID: product.MID,
+            Name: product.Name,
+            CONV: product.CONV,
+            qtySO: qtySO,
+            qtySAP: qtySAP,
+            diffSO_SAP: diffSO_SAP
+          });
+        });
+
+        // Get the remarks value
+        const remarks = document.getElementById('remarksTextarea').value;
+
+        // Get the current time (for submission time)
+        const currentTime = new Date().toLocaleTimeString('en-GB', { hour12: false });
+
+        // Combine date and time
+        const formattedDateWithTime = `${formattedDate} ${currentTime}`;
+
+        // Submit data with date, time, session, and remarks
+        google.script.run.withSuccessHandler(function(response) {
+          if (response.isDuplicate) {
+            swal({
+              title: "Duplication Detected!!",
+              text: "Data for this date and session already exists. Please select a different date.",
+              icon: "error",
+              buttons: {
+                confirm: {
+                  className: 'btn btn-danger'
+                }
+              },
+              timer: 3000
+            });
+          } else {
+            showSuccessAlert(); // Trigger success alert if no duplication
+          }
+        }).submitDataWithRemarksAndSession(data, remarks, formattedDateWithTime, currentSession);
+      });
+
+      // Show success alert using SweetAlert
+      function showSuccessAlert() {
+        swal({
+          title: "Success!",
+          text: "Your data has been successfully submitted.",
+          icon: "success",
+          buttons: {
+            confirm: {
+              className: 'btn btn-success'
+            }
+          },
+          timer: 3000
+        });
+      }
+
+      // Initial population of the table
+      populateInitialTable();
+
+      // Periodically update the QTY SO values
+      setInterval(updateTable, 1000);
+
+      document.querySelector('.qty-sap-input').addEventListener('paste', function(event) {
+        event.preventDefault();
+
+        // Get the pasted data
+        let clipboardData = event.clipboardData || window.clipboardData;
+        let pastedData = clipboardData.getData('Text').trim();
+
+        // Split the data by new lines (assuming each value is on a new line from Excel or spreadsheet)
+        let rows = pastedData.split(/\r?\n/);
+
+        // Iterate over each row and distribute the values to the qtySAP input fields
+        let qtySAPInputs = document.querySelectorAll('.qty-sap-input');
+
+        rows.forEach((value, index) => {
+          if (qtySAPInputs[index]) {
+            qtySAPInputs[index].value = parseFloat(value.trim()) || 0;  // Set the input value
+            // Trigger an input event to calculate the DIFF SO-SAP
+            let event = new Event('input', { bubbles: true });
+            qtySAPInputs[index].dispatchEvent(event);
+          }
+        });
+      });
+
+      // Fetch DIFF PREVIOUS data based on selected date
+      function fetchDiffPreviousForDate(selectedDate) {
+        google.script.run.withSuccessHandler(function(result) {
+          const diffPreviousData = result.data; // Retrieve DIFF PREVIOUS data from the backend
+
+          // Get all elements with the class "diff-previous" and update their values
+          const diffPreviousElements = document.querySelectorAll('.diff-previous');  
+          diffPreviousElements.forEach((element, index) => {
+            element.textContent = diffPreviousData[index];  // Update the DIFF PREVIOUS column with the new data
+          });
+        }).getDiffPreviousByDate(selectedDate);  // Call the backend function to fetch DIFF PREVIOUS data
+      }
+
+      // Set default date to yesterday for the DIFF PREVIOUS filter
+      document.addEventListener('DOMContentLoaded', function() {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
+        const formattedYesterday = yesterday.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        document.getElementById('diffPreviousDate').value = formattedYesterday;
+        
+        // Automatically apply the filter for yesterday
+        fetchDiffPreviousForDate(formattedYesterday.split('-').reverse().join('/'));
+      });
+
+      // Event listener for filter DIFF PREVIOUS date change
+      document.getElementById('applyFilterButton').addEventListener('click', function() {
+        const filterDate = document.getElementById('diffPreviousDate').value.split('-').reverse().join('/');
+        fetchDiffPreviousForDate(filterDate);
+      });
+
+
+// Navigasi ke halaman lain
+function navigateTo(page) {
+  // Show a loading spinner
+  insertLoadingSpinner();  // Dynamically insert spinner
+  
+  google.script.run.withSuccessHandler(function(html) {
+    // Replace entire document content
+    document.open();
+    document.write(html);
+    document.close();
+  }).loadPage(page);
+}
+
+// Function to insert loading spinner into the body
+function insertLoadingSpinner() {
+  const spinnerHtml = `
+    <div id="loadingSpinner" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+      <div class="spinner-grow text-primary" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-secondary" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-success" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-danger" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-warning" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-light" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+      <div class="spinner-grow text-dark" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+    </div>
+  `;
+
+  // Append the spinner HTML to the body
+  document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+}
+
+// Function to remove the loading spinner after page load
+function removeLoadingSpinner() {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) {
+    spinner.remove(); // Remove spinner after the page has loaded
+  }
+}
+    </script>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
