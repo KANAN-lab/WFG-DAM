@@ -4,9 +4,13 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Main Page</title>
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <!-- Font Awesome for Icons -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  
   <style>
     body, html {
       height: 100%;
@@ -14,7 +18,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f8f9fa; /* Background yang lembut */
+      background-color: #f8f9fa; /* Soft background */
     }
     .container {
       max-width: 400px;
@@ -28,16 +32,16 @@
       font-size: 28px;
       font-weight: bold;
       margin-bottom: 20px;
-      color: #343a40; /* Warna teks lebih gelap */
+      color: #343a40; /* Darker text color */
     }
     .btn-custom {
       width: 100%; 
       max-width: 300px;
-      margin-bottom: 15px; /* Spasi antar tombol lebih besar */
-      font-size: 16px; /* Font yang lebih besar */
+      margin-bottom: 15px; /* Increased space between buttons */
+      font-size: 16px; /* Larger font */
       padding: 10px 0;
       position: relative;
-      transition: all 0.3s ease; /* Transition untuk efek smooth */
+      transition: all 0.3s ease; /* Smooth transition */
     }
     .btn-primary {
       background-color: #007bff;
@@ -60,10 +64,10 @@
     .disabled-btn {
       pointer-events: none;
       opacity: 0.6;
-      transition: opacity 0.3s ease-in-out; /* Smooth transition untuk disable */
+      transition: opacity 0.3s ease-in-out; /* Smooth transition for disable */
     }
 
-    /* Animasi Ripple untuk pengecekan data */
+    /* Ripple Animation for data checking */
     @keyframes ripple {
       0% {
         box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4), 0 0 0 10px rgba(0, 123, 255, 0);
@@ -78,7 +82,7 @@
 
     .checking-data {
       animation: ripple 1.5s infinite;
-      transition: box-shadow 0.3s ease; /* Smooth transition untuk animasi */
+      transition: box-shadow 0.3s ease; /* Smooth transition for animation */
     }
 
     /* Blinking Dots Animation */
@@ -131,13 +135,22 @@
     <button class="btn btn-secondary btn-custom" onclick="navigateTo('CONVERTER')">Final SO</button>
     <button class="btn btn-warning btn-custom" onclick="navigateTo('ReportSOCOL')">Report SO</button>
     <button class="btn btn-success btn-custom" onclick="navigateTo('ReportSO')">History SO</button>
+    <!-- Modified Sync Data Button -->
+    <button class="btn btn-info btn-custom" onclick="promptPasswordForSync()">Sync Data</button>
     <button class="btn btn-danger btn-custom back-button" onclick="navigateTo('Index')"><i class="fas fa-arrow-left me-2"></i> Back to Dashboard</button>
   </div>
+
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Optional: Include the Bootstrap JS and its dependencies if not already included elsewhere -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <script>
     // Load data from Google Sheets and disable buttons based on conditions
     function checkAndDisableButtons() {
-      // Tambahkan animasi "checking-data" saat pengecekan dimulai
+      // Add "checking-data" animation when checking starts
       addLoadingAnimation();
       
       google.script.run.withSuccessHandler(function(response) {
@@ -162,7 +175,7 @@
           }
         }
 
-        // Hentikan animasi "checking-data" setelah pengecekan selesai
+        // Stop "checking-data" animation after checking is done
         removeLoadingAnimation();
       }).getZoneData();
     }
@@ -174,25 +187,25 @@
         const button = document.getElementById(buttonId);
         button.classList.remove('disabled-btn');
         button.disabled = false;
-        button.classList.add('checking-data'); // Tambahkan animasi ke tombol saat enable
+        button.classList.add('checking-data'); // Add animation to button when enabled
       });
     }
 
-    // Function untuk menambahkan animasi loading ke tombol
+    // Function to add loading animation to buttons
     function addLoadingAnimation() {
       const buttons = ['zonaA', 'zonaB', 'zonaE'];
       buttons.forEach(buttonId => {
         const button = document.getElementById(buttonId);
-        button.classList.add('checking-data'); // Tambahkan animasi ke tombol
+        button.classList.add('checking-data'); // Add animation to button
       });
     }
 
-    // Function untuk menghapus animasi loading dari tombol
+    // Function to remove loading animation from buttons
     function removeLoadingAnimation() {
       const buttons = ['zonaA', 'zonaB', 'zonaE'];
       buttons.forEach(buttonId => {
         const button = document.getElementById(buttonId);
-        button.classList.remove('checking-data'); // Hapus animasi dari tombol
+        button.classList.remove('checking-data'); // Remove animation from button
       });
     }
 
@@ -201,9 +214,9 @@
       const button = document.getElementById(buttonId);
       button.classList.add('disabled-btn');
       button.disabled = true;
-      button.classList.remove('checking-data'); // Hapus animasi ketika tombol di-disable
+      button.classList.remove('checking-data'); // Remove animation when button is disabled
 
-      // Hapus juga elemen span dots
+      // Also remove the span dots element
       const dots = button.querySelector('.dots');
       if (dots) {
         dots.remove();
@@ -213,7 +226,7 @@
     // Run the function to check the data when the page loads
     window.onload = checkAndDisableButtons;
 
-    // Navigasi ke halaman lain
+    // Navigation to other pages
     function navigateTo(page) {
       // Show a loading spinner
       insertLoadingSpinner();  // Dynamically insert spinner
@@ -223,6 +236,8 @@
         document.open();
         document.write(html);
         document.close();
+        // Remove the spinner after content is loaded
+        removeLoadingSpinner();
       }).loadPage(page);
     }
 
@@ -267,6 +282,54 @@
       if (spinner) {
         spinner.remove(); // Remove spinner after the page has loaded
       }
+    }
+
+    // **New Function to Prompt Password and Verify Server-Side**
+    function promptPasswordForSync() {
+      Swal.fire({
+        title: 'Enter Admin Password',
+        input: 'password',
+        inputPlaceholder: 'Enter your password',
+        inputAttributes: {
+          maxlength: 20,
+          autocapitalize: 'off',
+          autocorrect: 'off'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Submit',
+        showLoaderOnConfirm: true,
+        preConfirm: (password) => {
+          return new Promise((resolve, reject) => {
+            if (!password) {
+              reject('Password cannot be empty!');
+              return;
+            }
+            // Call the server-side verifyPassword function
+            google.script.run.withSuccessHandler(function(isValid) {
+              if (isValid) {
+                resolve();
+              } else {
+                reject('Incorrect password!');
+              }
+            }).withFailureHandler(function(error) {
+              reject('Error verifying password: ' + error.message);
+            }).verifyPassword(password);
+          });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Password is correct, proceed to navigate
+          navigateTo('SYNCHRONIZE');
+        }
+      }).catch((error) => {
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error
+        });
+      });
     }
 
   </script>
