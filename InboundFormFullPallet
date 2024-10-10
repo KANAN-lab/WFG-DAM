@@ -316,6 +316,26 @@
                 text-align: left;
                 margin-top: 5px;
             }
+
+            /* Loading Overlay Styles */
+            #loadingOverlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                backdrop-filter: blur(5px); /* Memberikan efek blur pada latar belakang */
+                background: rgba(0, 0, 0, 0.3); /* Transparansi untuk overlay */
+                z-index: 1000; /* Pastikan overlay berada di atas semua elemen lainnya */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #loadingOverlay .overlay-content {
+                width: 200px;
+                height: 200px;
+            }
         </style>
     </head>
     <body>
@@ -339,83 +359,83 @@
                         <span>Use Multiple MID</span>
                     </div>
 
-<!-- Single MID-Lane Section -->
-<div id="singleMIDSection" class="mid-lane-section">
-    <div class="mid-lane-group">
-        <label for="mid">MID:</label>
-        <div class="custom-select-wrapper">
-            <select id="mid" name="mid" class="custom-select">
-                <option value="">--Pilih MID--</option>
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
-        <label for="lane">Lane:</label>
-        <div class="custom-select-wrapper">
-            <select id="lane" name="lane" class="custom-select" onchange="updateProgressBar()">
-                <option value="">--Pilih Lane--</option>
-                <!-- Dynamically populated options will go here -->
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
+                    <!-- Single MID-Lane Section -->
+                    <div id="singleMIDSection" class="mid-lane-section">
+                        <div class="mid-lane-group">
+                            <label for="mid">MID:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="mid" name="mid" class="custom-select">
+                                    <option value="">--Pilih MID--</option>
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
+                            <label for="lane">Lane:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="lane" name="lane" class="custom-select" onchange="updateProgressBar()">
+                                    <option value="">--Pilih Lane--</option>
+                                    <!-- Dynamically populated options will go here -->
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
 
-        <div id="progressContainer" style="position: relative; width: 100%; background-color: lightgrey;">
-            <progress id="laneProgress" value="0" max="100" style="width: 100%; display: none;"></progress>
-            <span id="progressText" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
-        </div>
+                            <div id="progressContainer" style="position: relative; width: 100%; background-color: lightgrey;">
+                                <progress id="laneProgress" value="0" max="100" style="width: 100%; display: none;"></progress>
+                                <span id="progressText" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+                            </div>
 
-        <label for="settingDisplay">Setting:</label>
-        <div id="settingDisplay" class="setting-display">Loading...</div>
-    </div>
-</div>
+                            <label for="settingDisplay">Setting:</label>
+                            <div id="settingDisplay" class="setting-display">Loading...</div>
+                        </div>
+                    </div>
 
-<!-- Multiple MID-Lane Section -->
-<div id="multipleMIDSection" class="mid-lane-section" style="display: none;">
-    <div class="mid-lane-group">
-        <label for="mid1">MID 1:</label>
-        <div class="custom-select-wrapper">
-            <select id="mid1" name="mid1" class="custom-select">
-                <option value="">--Pilih MID--</option>
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
+                    <!-- Multiple MID-Lane Section -->
+                    <div id="multipleMIDSection" class="mid-lane-section" style="display: none;">
+                        <div class="mid-lane-group">
+                            <label for="mid1">MID 1:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="mid1" name="mid1" class="custom-select">
+                                    <option value="">--Pilih MID--</option>
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
 
-        <label for="lane1">Lane 1:</label>
-        <div class="custom-select-wrapper">
-            <select id="lane1" name="lane1" class="custom-select" onchange="updateMultipleProgressBar(1)">
-                <option value="">--Pilih Lane--</option>
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
+                            <label for="lane1">Lane 1:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="lane1" name="lane1" class="custom-select" onchange="updateMultipleProgressBar(1)">
+                                    <option value="">--Pilih Lane--</option>
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
 
-        <div id="multipleProgressContainer1" style="position: relative; width: 100%; background-color: lightgrey;">
-            <progress id="lane1Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
-            <span id="multipleProgressText1" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
-        </div>
-    </div>
+                            <div id="multipleProgressContainer1" style="position: relative; width: 100%; background-color: lightgrey;">
+                                <progress id="lane1Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+                                <span id="multipleProgressText1" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+                            </div>
+                        </div>
 
-    <div class="mid-lane-group">
-        <label for="mid2">MID 2:</label>
-        <div class="custom-select-wrapper">
-            <select id="mid2" name="mid2" class="custom-select">
-                <option value="">--Pilih MID--</option>
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
+                        <div class="mid-lane-group">
+                            <label for="mid2">MID 2:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="mid2" name="mid2" class="custom-select">
+                                    <option value="">--Pilih MID--</option>
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
 
-        <label for="lane2">Lane 2:</label>
-        <div class="custom-select-wrapper">
-            <select id="lane2" name="lane2" class="custom-select" onchange="updateMultipleProgressBar(2)">
-                <option value="">--Pilih Lane--</option>
-            </select>
-            <i class="fa fa-chevron-down custom-select-arrow"></i>
-        </div>
+                            <label for="lane2">Lane 2:</label>
+                            <div class="custom-select-wrapper">
+                                <select id="lane2" name="lane2" class="custom-select" onchange="updateMultipleProgressBar(2)">
+                                    <option value="">--Pilih Lane--</option>
+                                </select>
+                                <i class="fa fa-chevron-down custom-select-arrow"></i>
+                            </div>
 
-        <div id="multipleProgressContainer2" style="position: relative; width: 100%; background-color: lightgrey;">
-            <progress id="lane2Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
-            <span id="multipleProgressText2" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
-        </div>
-    </div>
-</div>
+                            <div id="multipleProgressContainer2" style="position: relative; width: 100%; background-color: lightgrey;">
+                                <progress id="lane2Progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+                                <span id="multipleProgressText2" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); display: none; font-weight: bold;"></span>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -437,19 +457,33 @@
                 </div>
             </div>
 
-
             <!-- Stopwatch -->
             <div class="stopwatch-container" style="display: none;">
                 <div class="stopwatch" id="stopwatch">00:00:00</div>
             </div>
+        </div>
 
-
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" style="display: none;">
+            <div class="overlay-content">
+                <lottie-player src="https://lottie.host/51258fe7-9b5f-454d-a945-5f21b0da506e/zvMiFIAI0z.json" background="transparent" speed="1" loop autoplay> </lottie-player>
+            </div>
         </div>
 
         <!-- Lottie Player Script -->
         <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
         <!-- Internal JavaScript -->
         <script>
+            // Fungsi untuk menampilkan loading overlay
+            function showLoadingOverlay() {
+                document.getElementById("loadingOverlay").style.display = "flex";
+            }
+
+            // Fungsi untuk menyembunyikan loading overlay
+            function hideLoadingOverlay() {
+                document.getElementById("loadingOverlay").style.display = "none";
+            }
+
             // Product Names and Colors for MID Dropdown
             const productNames = ["L1", "M1", "XL1", "L28", "M32", "XL26", "L8", "XL7", "L11", "M11", "XL11"];
             const colors = [
@@ -603,10 +637,12 @@
 
             // Fetch the setting value from the server
             function fetchSettingFromServer() {
-                google.script.run.withSuccessHandler(function (settingValue) {
-                    window.currentSetting = settingValue;
-                    document.getElementById("settingDisplay").innerText = settingValue;
-                }).getSetting();
+                google.script.run
+                    .withSuccessHandler(function (settingValue) {
+                        window.currentSetting = settingValue;
+                        document.getElementById("settingDisplay").innerText = settingValue;
+                    })
+                    .getSetting();
             }
 
             // Set Active Zona Button
@@ -702,6 +738,42 @@
                     return;
                 }
 
+                // Panggil fungsi server untuk mendapatkan status lane
+                google.script.run
+                    .withSuccessHandler(function (laneStatusData) {
+                        // Kumpulkan semua lane yang dipilih
+                        let selectedLanes = dataEntries.map((entry) => entry.lane);
+
+                        // Periksa apakah salah satu lane sudah memiliki MID yang berbeda
+                        let lanesAlreadyOccupied = [];
+                        laneStatusData.forEach((laneData) => {
+                            if (selectedLanes.includes(laneData.laneID) && laneData.mid && laneData.mid !== dataEntries.find((entry) => entry.lane === laneData.laneID).mid) {
+                                lanesAlreadyOccupied.push(laneData.laneID);
+                            }
+                        });
+
+                        if (lanesAlreadyOccupied.length > 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Lane Sudah Terisi",
+                                html: `Lane berikut sudah memiliki MID yang terpasang: <strong>${lanesAlreadyOccupied.join(", ")}</strong>. Harap pilih lane lain atau gunakan MID yang sama.`,
+                            });
+                            return;
+                        } else {
+                            // Jika semua lane tersedia, lanjutkan proses seperti biasa
+                            proceedWithPlayButton(dataEntries);
+                        }
+                    })
+                    .withFailureHandler(function (error) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Gagal memeriksa status lane. Silakan coba lagi.",
+                        });
+                        console.error("Error fetching lane status:", error);
+                    })
+                    .getLaneStatusData(); // Panggil fungsi server yang sudah ada
+
                 // Proceed if validation passes
                 playButton.style.pointerEvents = "none"; // Disable play button
                 playButton.classList.add("clicked-border");
@@ -724,6 +796,8 @@
 
             // Function to enable the submit button and disable the play button after submit
             function submitForm() {
+                // Tampilkan loading overlay saat proses submit dimulai
+                showLoadingOverlay();
                 const submitButton = document.getElementById("submitButton");
                 const playButton = document.getElementById("playButton");
 
@@ -770,6 +844,7 @@
                         html: `Field berikut harus diisi: <strong>${missingFields.join(", ")}</strong>.`,
                     });
 
+                    hideLoadingOverlay(); // Sembunyikan loading overlay
                     stopStopwatch(); // Stop stopwatch if there are missing fields
                     playButton.style.display = "flex";
                     playButton.style.pointerEvents = "auto"; // Re-enable play button for retry
@@ -793,6 +868,8 @@
                 });
 
                 Promise.allSettled(promises).then((results) => {
+                    // Sembunyikan loading overlay setelah proses submit selesai
+                    hideLoadingOverlay();
                     let successEntries = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
                     let failedEntries = results.filter((result) => result.status === "rejected").map((result) => result.reason);
 
@@ -924,6 +1001,31 @@
                         field.classList.remove("invalid");
                     }
                 });
+            }
+
+            // Fungsi untuk melanjutkan proses Play Button setelah pengecekan sukses
+            function proceedWithPlayButton(dataEntries) {
+                const playButton = document.getElementById("playButton");
+                const submitButton = document.getElementById("submitButton");
+
+                // Lanjutkan dengan proses yang sudah ada
+                playButton.style.pointerEvents = "none"; // Nonaktifkan play button
+                playButton.classList.add("clicked-border");
+                playButton.style.display = "none"; // Sembunyikan play button
+
+                // Tampilkan submit button
+                submitButton.style.display = "flex";
+                submitButton.style.pointerEvents = "auto"; // Aktifkan submit button
+
+                startStopwatch(); // Mulai stopwatch
+                disableForm(true); // Kunci form saat stopwatch berjalan
+
+                // Sembunyikan unlock button ketika play button diklik
+                document.getElementById("unlockButton").style.display = "none";
+
+                // Nonaktifkan tombol Zona A dan Zona B saat stopwatch berjalan
+                document.getElementById("zoneAButton").disabled = true;
+                document.getElementById("zoneBButton").disabled = true;
             }
 
             // Reset Form and UI Elements
@@ -1128,147 +1230,148 @@
                 document.getElementById("submitButton").style.display = "none"; // Keep submit button hidden until play is pressed
             }
 
-let progressBarInterval;
+            let progressBarInterval;
 
-function updateProgressBar() {
-    const laneSelect = document.getElementById("lane");
-    const selectedLane = laneSelect.value;
-    const progressBar = document.getElementById("laneProgress");
-    const progressText = document.getElementById("progressText");
+            function updateProgressBar() {
+                const laneSelect = document.getElementById("lane");
+                const selectedLane = laneSelect.value;
+                const progressBar = document.getElementById("laneProgress");
+                const progressText = document.getElementById("progressText");
 
-    if (selectedLane) {
-        // Clear any existing interval to avoid multiple timers
-        clearInterval(progressBarInterval);
+                if (selectedLane) {
+                    // Clear any existing interval to avoid multiple timers
+                    clearInterval(progressBarInterval);
 
-        const maxPallet = getMaxPallet(selectedLane);
+                    const maxPallet = getMaxPallet(selectedLane);
 
-        // Show the progress bar and text
-        progressBar.style.display = "block";
-        progressText.style.display = "block";
+                    // Show the progress bar and text
+                    progressBar.style.display = "block";
+                    progressText.style.display = "block";
 
-        // Initial call to update immediately
-        updateProgress(selectedLane, maxPallet);
+                    // Initial call to update immediately
+                    updateProgress(selectedLane, maxPallet);
 
-        // Set interval to update every second
-        progressBarInterval = setInterval(() => {
-            updateProgress(selectedLane, maxPallet);
-        }, 1000);
-    } else {
-        clearInterval(progressBarInterval); // Clear the interval if no lane is selected
-        progressBar.style.display = "none"; // Hide progress bar
-        progressText.style.display = "none"; // Hide progress text
-        document.getElementById("laneStatusDisplay").textContent = ""; // Set status display text
-    }
-}
-
-function updateProgress(selectedLane, maxPallet) {
-    google.script.run
-        .withSuccessHandler(function (laneStatusData) {
-            const progressBar = document.getElementById("laneProgress");
-            const progressText = document.getElementById("progressText");
-            const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
-            const currentQuantity = laneData ? laneData.quantity : 0;
-
-            // Calculate percentage filled
-            const percentageFilled = (currentQuantity / maxPallet) * 100;
-
-            // Update the progress bar
-            progressBar.value = percentageFilled;
-            progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
-
-            // Change color based on percentage
-            if (percentageFilled >= 100) {
-                progressBar.style.backgroundColor = "red"; // Full
-            } else if (percentageFilled >= 75) {
-                progressBar.style.backgroundColor = "orange"; // 75% and above
-            } else if (percentageFilled >= 50) {
-                progressBar.style.backgroundColor = "yellow"; // 50% to 74%
-            } else {
-                progressBar.style.backgroundColor = "green"; // Below 50%
+                    // Set interval to update every second
+                    progressBarInterval = setInterval(() => {
+                        updateProgress(selectedLane, maxPallet);
+                    }, 1000);
+                } else {
+                    clearInterval(progressBarInterval); // Clear the interval if no lane is selected
+                    progressBar.style.display = "none"; // Hide progress bar
+                    progressText.style.display = "none"; // Hide progress text
+                    document.getElementById("laneStatusDisplay").textContent = ""; // Set status display text
+                }
             }
 
-            // Ensure the progress bar is displayed
-            progressBar.style.display = "block";
-            progressText.style.display = "block"; // Show the text
+            function updateProgress(selectedLane, maxPallet) {
+                google.script.run
+                    .withSuccessHandler(function (laneStatusData) {
+                        const progressBar = document.getElementById("laneProgress");
+                        const progressText = document.getElementById("progressText");
+                        const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
+                        const currentQuantity = laneData ? laneData.quantity : 0;
 
-            // Update the lane status display
-            const laneStatusDisplay = document.getElementById("laneStatusDisplay");
-            laneStatusDisplay.textContent = `${selectedLane} (${currentQuantity}/${maxPallet})`;
+                        // Calculate percentage filled
+                        const percentageFilled = (currentQuantity / maxPallet) * 100;
 
-            // Stop updating if full
-            if (currentQuantity >= maxPallet) {
-                clearInterval(progressBarInterval); // Stop updating if full
-            }
-        })
-        .getLaneStatusData();
-}
+                        // Update the progress bar
+                        progressBar.value = percentageFilled;
+                        progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
 
-// New function for multiple MID progress updates
-function updateMultipleProgressBar(midIndex) {
-    const laneSelect = document.getElementById(`lane${midIndex}`);
-    const selectedLane = laneSelect.value;
-    const progressBar = document.getElementById(`lane${midIndex}Progress`);
-    const progressText = document.getElementById(`multipleProgressText${midIndex}`);
+                        // Change color based on percentage
+                        if (percentageFilled >= 100) {
+                            progressBar.style.backgroundColor = "red"; // Full
+                        } else if (percentageFilled >= 75) {
+                            progressBar.style.backgroundColor = "orange"; // 75% and above
+                        } else if (percentageFilled >= 50) {
+                            progressBar.style.backgroundColor = "yellow"; // 50% to 74%
+                        } else {
+                            progressBar.style.backgroundColor = "green"; // Below 50%
+                        }
 
-    if (selectedLane) {
-        // Clear any existing interval to avoid multiple timers
-        clearInterval(progressBarInterval);
+                        // Ensure the progress bar is displayed
+                        progressBar.style.display = "block";
+                        progressText.style.display = "block"; // Show the text
 
-        const maxPallet = getMaxPallet(selectedLane); // Adjust this if necessary for multiple lanes
+                        // Update the lane status display
+                        const laneStatusDisplay = document.getElementById("laneStatusDisplay");
+                        laneStatusDisplay.textContent = `${selectedLane} (${currentQuantity}/${maxPallet})`;
 
-        // Show the progress bar and text
-        progressBar.style.display = "block";
-        progressText.style.display = "block";
-
-        // Initial call to update immediately
-        updateMultipleProgress(selectedLane, maxPallet, midIndex);
-
-        // Set interval to update every second
-        progressBarInterval = setInterval(() => {
-            updateMultipleProgress(selectedLane, maxPallet, midIndex);
-        }, 1000);
-    } else {
-        clearInterval(progressBarInterval); // Clear the interval if no lane is selected
-        progressBar.style.display = "none"; // Hide progress bar
-        progressText.style.display = "none"; // Hide progress text
-    }
-}
-
-// Function to update progress for multiple MID
-function updateMultipleProgress(selectedLane, maxPallet, midIndex) {
-    google.script.run
-        .withSuccessHandler(function (laneStatusData) {
-            const progressBar = document.getElementById(`lane${midIndex}Progress`);
-            const progressText = document.getElementById(`multipleProgressText${midIndex}`);
-            const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
-            const currentQuantity = laneData ? laneData.quantity : 0;
-
-            // Calculate percentage filled
-            const percentageFilled = (currentQuantity / maxPallet) * 100;
-
-            // Update the progress bar
-            progressBar.value = percentageFilled;
-            progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
-
-            // Change color based on percentage
-            if (percentageFilled >= 100) {
-                progressBar.style.backgroundColor = "red"; // Full
-            } else if (percentageFilled >= 75) {
-                progressBar.style.backgroundColor = "orange"; // 75% and above
-            } else if (percentageFilled >= 50) {
-                progressBar.style.backgroundColor = "yellow"; // 50% to 74%
-            } else {
-                progressBar.style.backgroundColor = "green"; // Below 50%
+                        // Stop updating if full
+                        if (currentQuantity >= maxPallet) {
+                            clearInterval(progressBarInterval); // Stop updating if full
+                        }
+                    })
+                    .getLaneStatusData();
             }
 
-            // Ensure the progress bar is displayed
-            progressBar.style.display = "block";
-            progressText.style.display = "block"; // Show the text
-        })
-        .getLaneStatusData();
-}
+            // New function for multiple MID progress updates
+            function updateMultipleProgressBar(midIndex) {
+                const laneSelect = document.getElementById(`lane${midIndex}`);
+                const selectedLane = laneSelect.value;
+                const progressBar = document.getElementById(`lane${midIndex}Progress`);
+                const progressText = document.getElementById(`multipleProgressText${midIndex}`);
+
+                if (selectedLane) {
+                    // Clear any existing interval to avoid multiple timers
+                    clearInterval(progressBarInterval);
+
+                    const maxPallet = getMaxPallet(selectedLane); // Adjust this if necessary for multiple lanes
+
+                    // Show the progress bar and text
+                    progressBar.style.display = "block";
+                    progressText.style.display = "block";
+
+                    // Initial call to update immediately
+                    updateMultipleProgress(selectedLane, maxPallet, midIndex);
+
+                    // Set interval to update every second
+                    progressBarInterval = setInterval(() => {
+                        updateMultipleProgress(selectedLane, maxPallet, midIndex);
+                    }, 1000);
+                } else {
+                    clearInterval(progressBarInterval); // Clear the interval if no lane is selected
+                    progressBar.style.display = "none"; // Hide progress bar
+                    progressText.style.display = "none"; // Hide progress text
+                }
+            }
+
+            // Function to update progress for multiple MID
+            function updateMultipleProgress(selectedLane, maxPallet, midIndex) {
+                google.script.run
+                    .withSuccessHandler(function (laneStatusData) {
+                        const progressBar = document.getElementById(`lane${midIndex}Progress`);
+                        const progressText = document.getElementById(`multipleProgressText${midIndex}`);
+                        const laneData = laneStatusData.find((data) => data.laneID === selectedLane);
+                        const currentQuantity = laneData ? laneData.quantity : 0;
+
+                        // Calculate percentage filled
+                        const percentageFilled = (currentQuantity / maxPallet) * 100;
+
+                        // Update the progress bar
+                        progressBar.value = percentageFilled;
+                        progressText.textContent = `${currentQuantity}/${maxPallet}`; // Update text
+
+                        // Change color based on percentage
+                        if (percentageFilled >= 100) {
+                            progressBar.style.backgroundColor = "red"; // Full
+                        } else if (percentageFilled >= 75) {
+                            progressBar.style.backgroundColor = "orange"; // 75% and above
+                        } else if (percentageFilled >= 50) {
+                            progressBar.style.backgroundColor = "yellow"; // 50% to 74%
+                        } else {
+                            progressBar.style.backgroundColor = "green"; // Below 50%
+                        }
+
+                        // Ensure the progress bar is displayed
+                        progressBar.style.display = "block";
+                        progressText.style.display = "block"; // Show the text
+                    })
+                    .getLaneStatusData();
+            }
 
             window.onload = function () {
+                hideLoadingOverlay(); // Pastikan overlay tersembunyi saat halaman dimuat
                 hideInitialElements(); // Ensure the stopwatch is hidden initially
                 populateMID(); // Populate MID dropdown on load
             };
