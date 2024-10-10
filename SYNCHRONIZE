@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base target="_top">
+  <title>Sinkronisasi LANE STATUS</title>
+  
+  <!-- Bootstrap CSS tanpa atribut integrity dan crossorigin untuk debugging -->
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+    rel="stylesheet">
+  
+  <!-- Font Awesome CSS tanpa atribut integrity dan crossorigin untuk debugging -->
+  <link 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+    rel="stylesheet" />
+  
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      background-color: #f8f9fa;
+    }
+    .card {
+      margin-top: 30px;
+    }
+    #status, #lastSync {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .spinner-border {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-width: .2em;
+    }
+    /* Media Query untuk penyesuaian pada layar kecil */
+    @media (max-width: 768px) {
+      .card {
+        margin-top: 20px;
+      }
+      .card-title {
+        font-size: 1.25rem;
+      }
+      .form-label, .btn {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container h-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-6 mx-auto">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white text-center">
+            <h3 class="card-title mb-0">
+              <i class="fas fa-sync-alt me-2"></i> SYNCHRONIZE DATA LANE STATUS
+            </h3>
+          </div>
+          <div class="card-body">
+            <form id="syncForm">
+              <div class="mb-3">
+                <label for="session" class="form-label">
+                  <i class="fas fa-clock me-2"></i> Pilih Session :
+                </label>
+                <select class="form-select" id="session" required>
+                  <option value="" disabled selected>-- Belum ada session --</option>
+                  <option value="morning">Morning (01:00 AM - 12:59 PM)</option>
+                  <option value="afternoon">Afternoon (01:00 PM - 11:59 PM)</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success w-100" id="syncButton">
+                <i class="fas fa-play me-2"></i> Mulai Sinkronisasi
+              </button>
+            </form>
+            <!-- Status Alert -->
+            <div id="status" class="alert alert-info text-center mt-4" role="alert">
+              <i class="fas fa-info-circle me-2"></i> Status: Belum ada tindakan.
+            </div>
+            <!-- Last Sync Alert -->
+            <div id="lastSync" class="alert alert-secondary text-center mt-2" role="alert">
+              <i class="fas fa-history me-2"></i> Last Sync: Mengambil data...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS tanpa atribut integrity dan crossorigin untuk debugging -->
+  <script 
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+  </script>
+  
+  <script>
+    // Fungsi untuk mengambil waktu sinkronisasi terakhir
+    function fetchLastSyncTime() {
+      google.script.run.withSuccessHandler((lastSync) => {
+        const lastSyncDiv = document.getElementById('lastSync');
+        lastSyncDiv.innerHTML = `<i class="fas fa-history me-2"></i> Last Sync: ${lastSync}`;
+      }).withFailureHandler((error) => {
+        const lastSyncDiv = document.getElementById('lastSync');
+        lastSyncDiv.innerHTML = `<i class="fas fa-times-circle me-2"></i> Error: ${error.message}`;
+      }).getLastSyncTime();
+    }
+    
+    // Panggil fungsi untuk mengambil waktu sinkronisasi terakhir saat halaman dimuat
+    window.onload = fetchLastSyncTime;
+    
+    document.getElementById('syncForm').addEventListener('submit', (e) => {
+      e.preventDefault(); // Mencegah form dari reload halaman
+      
+      const selectedSession = document.getElementById('session').value;
+      const statusDiv = document.getElementById('status');
+      const syncButton = document.getElementById('syncButton');
+      
+      // Validasi pemilihan sesi
+      if (!selectedSession) {
+        statusDiv.className = 'alert alert-warning text-center';
+        statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Silakan pilih sesi sinkronisasi.';
+        return;
+      }
+      
+      // Update status dan disable tombol
+      statusDiv.className = 'alert alert-info text-center';
+      statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Menjalankan sinkronisasi...';
+      syncButton.disabled = true;
+      
+      // Panggil fungsi sinkronisasi di server
+      google.script.run.withSuccessHandler((message) => {
+        statusDiv.className = 'alert alert-success text-center';
+        statusDiv.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${message}`;
+        syncButton.disabled = false;
+        // Reset pilihan sesi
+        document.getElementById('session').selectedIndex = 0;
+        // Update waktu sinkronisasi terakhir
+        fetchLastSyncTime();
+      }).withFailureHandler((error) => {
+        statusDiv.className = 'alert alert-danger text-center';
+        statusDiv.innerHTML = `<i class="fas fa-times-circle me-2"></i> Error: ${error.message}`;
+        syncButton.disabled = false;
+      }).synchronizeData(selectedSession);
+    });
+  </script>
+</body>
+</html>
