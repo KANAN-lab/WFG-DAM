@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- Lottie Animation CSS -->
+  <style>
+    body {
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+    }
+    .spinner-border {
+      display: none;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: filter 0.3s ease;
+    }
+    .blur {
+      filter: blur(5px);
+    }
+    .loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    .available-quantity {
+      margin-top: 5px;
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+    .recommended-lane {
+      font-weight: bold;
+      color: #28a745;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .order-row {
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      background-color: #fafafa;
+    }
+    .removeOrder {
+      background-color: #dc3545;
+      border: none;
+      color: #ffffff;
+      padding: 10px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .removeOrder:hover {
+      background-color: #c82333;
+    }
+    #addOrder {
+      background-color: #007bff;
+      border: none;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #addOrder:hover {
+      background-color: #0069d9;
+    }
+    .btn-primary {
+      background-color: #28a745;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainContainer">
+    <h3 class="mb-4 text-center"><i class="fas fa-boxes"></i> Outbound FMCG Management</h3>
+    
+    <form id="outboundForm">
+      <div id="orderContainer">
+        <div class="order-row">
+          <div class="row">
+            <div class="col-md-4">
+              <label for="mid" class="form-label">MID</label>
+              <select class="form-select mid-select" name="mid[]" required>
+                <option value="" disabled selected>Pilih MID</option>
+                <!-- Options akan diisi oleh JavaScript -->
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="lane" class="form-label">Lane</label>
+              <select class="form-select lane-select" name="lane[]" required disabled>
+                <option value="" disabled selected>Pilih MID terlebih dahulu</option>
+                <!-- Options akan diisi oleh JavaScript -->
+              </select>
+              <div class="available-quantity" id="availableQuantity-0"></div>
+            </div>
+            <div class="col-md-3">
+              <label for="quantity" class="form-label">Quantity</label>
+              <input type="number" class="form-control quantity-input" name="quantity[]" min="1" required disabled placeholder="Masukkan Quantity">
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+              <button type="button" class="removeOrder" title="Hapus Order"><i class="fas fa-minus-circle"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn mb-3" id="addOrder"><i class="fas fa-plus-circle"></i> Tambah Order</button>
+      <br>
+      <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Proses Outbound</button>
+      <div class="spinner-border text-primary ms-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </form>
+    
+    <div id="result" class="mt-4"></div>
+  </div>
+  
+  <!-- Loader Overlay with Lottie Animation -->
+  <div class="loader-overlay" id="loaderOverlay">
+    <div id="lottieAnimation"></div>
+  </div>
+  
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jQuery (optional, untuk manipulasi DOM yang lebih mudah) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Lottie Web JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.1/lottie.min.js"></script>
+  <script>
+    let midOptions = [];
+
+    // Fungsi untuk mengisi dropdown MID
+    function populateMIDOptions() {
+      google.script.run.withSuccessHandler(function(mids) {
+        midOptions = mids;
+        const selects = document.querySelectorAll('.mid-select');
+        selects.forEach(select => {
+          // Remove existing options except the first
+          while (select.options.length > 1) {
+            select.remove(1);
+          }
+          mids.forEach(mid => {
+            const option = document.createElement('option');
+            option.value = mid;
+            option.textContent = mid;
+            select.appendChild(option);
+          });
+        });
+      }).getMIDs();
+    }
+
+    // Panggil fungsi untuk mengisi MID saat halaman dimuat
+    window.onload = function() {
+      populateMIDOptions();
+      
+      // Initialize Lottie Animation
+      lottie.loadAnimation({
+        container: document.getElementById('lottieAnimation'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: 'https://lottie.host/8dd8a7f1-51b4-4bf4-861d-3b7a0868eaa5/Khc32yK1dW.json'
+      });
+    };
+
+    // Fungsi untuk menambahkan order baru dengan dropdown MID, Lane, dan input Quantity
+    document.getElementById('addOrder').addEventListener('click', function() {
+      const orderContainer = document.getElementById('orderContainer');
+      const orderCount = document.querySelectorAll('.order-row').length;
+      const newOrder = document.createElement('div');
+      newOrder.className = 'order-row';
+      newOrder.innerHTML = `
+        <div class="row">
+          <div class="col-md-4">
+            <label for="mid" class="form-label">MID</label>
+            <select class="form-select mid-select" name="mid[]" required>
+              <option value="" disabled selected>Pilih MID</option>
+              ${midOptions.map(mid => `<option value="${mid}">${mid}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="lane" class="form-label">Lane</label>
+            <select class="form-select lane-select" name="lane[]" required disabled>
+              <option value="" disabled selected>Pilih MID terlebih dahulu</option>
+            </select>
+            <div class="available-quantity" id="availableQuantity-${orderCount}"></div>
+          </div>
+          <div class="col-md-3">
+            <label for="quantity" class="form-label">Quantity</label>
+            <input type="number" class="form-control quantity-input" name="quantity[]" min="1" required disabled placeholder="Masukkan Quantity">
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="removeOrder" title="Hapus Order"><i class="fas fa-minus-circle"></i></button>
+          </div>
+        </div>
+      `;
+      orderContainer.appendChild(newOrder);
+    });
+
+    // Fungsi untuk menghapus order
+    document.getElementById('orderContainer').addEventListener('click', function(e) {
+      if (e.target && e.target.closest('button.removeOrder')) {
+        const btn = e.target.closest('button.removeOrder');
+        btn.parentElement.parentElement.parentElement.remove();
+      }
+    });
+
+    // Fungsi untuk menangani perubahan pada MID dropdown dan mengisi Lane dropdown
+    document.getElementById('orderContainer').addEventListener('change', function(e) {
+      if (e.target && e.target.matches('select.mid-select')) {
+        const selectedMID = e.target.value;
+        const laneSelect = e.target.closest('.order-row').querySelector('select.lane-select');
+        const availableQuantityDiv = e.target.closest('.order-row').querySelector('.available-quantity');
+        const quantityInput = e.target.closest('.order-row').querySelector('.quantity-input');
+        
+        // Reset lane select dan available quantity
+        laneSelect.innerHTML = '<option value="" disabled selected>Pilih Lane</option>';
+        laneSelect.disabled = true;
+        availableQuantityDiv.textContent = '';
+        quantityInput.value = '';
+        quantityInput.disabled = true;
+        quantityInput.placeholder = 'Masukkan Quantity';
+        
+        if (selectedMID) {
+          // Ambil daftar lanes untuk MID yang dipilih
+          google.script.run.withSuccessHandler(function(lanesWithDates) {
+            if (lanesWithDates.length > 0) {
+              laneSelect.disabled = false;
+              lanesWithDates.forEach((laneObj, index) => {
+                const option = document.createElement('option');
+                option.value = laneObj.lane;
+                option.textContent = `${laneObj.lane} (${laneObj.date})`;
+                if (index === 0) {
+                  option.textContent += ' - (Rekomendasi)';
+                  option.classList.add('recommended-lane');
+                }
+                laneSelect.appendChild(option);
+              });
+              // Automatically select the first lane (rekomendasi)
+              laneSelect.selectedIndex = 1;
+              const event = new Event('change', { bubbles: true }); // Modified line
+              laneSelect.dispatchEvent(event);
+            } else {
+              laneSelect.innerHTML = '<option value="" disabled selected>Tidak ada Lane tersedia</option>';
+              laneSelect.disabled = true;
+            }
+          }).getLanesForMID(selectedMID);
+        }
+      }
+      
+      // Jika lane dipilih, ambil quantity yang tersedia
+      if (e.target && e.target.matches('select.lane-select')) {
+        const laneSelect = e.target;
+        const selectedLane = laneSelect.value;
+        const midSelect = laneSelect.closest('.order-row').querySelector('select.mid-select');
+        const selectedMID = midSelect.value;
+        const availableQuantityDiv = laneSelect.closest('.order-row').querySelector('.available-quantity');
+        const quantityInput = laneSelect.closest('.order-row').querySelector('.quantity-input');
+        
+        // Reset available quantity dan set quantity input
+        availableQuantityDiv.textContent = '';
+        quantityInput.value = '';
+        quantityInput.max = '';
+        quantityInput.disabled = false;
+        quantityInput.placeholder = 'Masukkan Quantity';
+        
+        if (selectedMID && selectedLane) {
+          // Ambil quantity yang tersedia
+          google.script.run.withSuccessHandler(function(quantity) {
+            availableQuantityDiv.textContent = `Quantity Tersedia: ${quantity}`;
+            if (quantity > 0) {
+              quantityInput.max = quantity;
+              quantityInput.disabled = false;
+              quantityInput.placeholder = `Masukkan hingga ${quantity}`;
+            } else {
+              quantityInput.disabled = true;
+              quantityInput.placeholder = 'Stok tidak tersedia';
+            }
+          }).getAvailableQuantity(selectedMID, selectedLane);
+        }
+      }
+    });
+
+    // Fungsi untuk menangani submit form
+    document.getElementById('outboundForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Show Lottie Animation and apply blur
+      document.getElementById('loaderOverlay').style.display = 'flex';
+      document.getElementById('mainContainer').classList.add('blur');
+      
+      const spinner = document.querySelector('.spinner-border');
+      spinner.style.display = 'inline-block';
+      const formData = new FormData(e.target);
+      const mids = formData.getAll('mid[]');
+      const lanes = formData.getAll('lane[]');
+      const quantities = formData.getAll('quantity[]');
+      const outboundOrders = [];
+      for (let i = 0; i < mids.length; i++) {
+        outboundOrders.push({
+          mid: mids[i].trim(),
+          lane: lanes[i],
+          quantity: parseInt(quantities[i], 10)
+        });
+      }
+
+      // Validasi Quantity tidak boleh melebihi stok yang tersedia dan harus valid
+      let valid = true;
+      for (let i = 0; i < outboundOrders.length; i++) {
+        const order = outboundOrders[i];
+        const quantityInput = e.target.querySelectorAll('input[name="quantity[]"]')[i];
+        if (isNaN(order.quantity) || order.quantity <= 0) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Quantity Tidak Valid',
+            text: `Quantity untuk MID ${order.mid} di Lane ${order.lane} tidak valid.`,
+          });
+          valid = false;
+          break;
+        }
+        if (order.quantity > parseInt(quantityInput.max, 10)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Stok Tidak Cukup',
+            text: `Quantity untuk MID ${order.mid} di Lane ${order.lane} melebihi stok yang tersedia (${quantityInput.max}).`,
+          });
+          valid = false;
+          break;
+        }
+      }
+
+      if (!valid) {
+        spinner.style.display = 'none';
+        // Hide Lottie Animation and remove blur
+        document.getElementById('loaderOverlay').style.display = 'none';
+        document.getElementById('mainContainer').classList.remove('blur');
+        return;
+      }
+
+      // Konfirmasi sebelum proses outbound
+      Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Anda akan memproses outbound untuk order ini.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Ya, Proses!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          google.script.run.withSuccessHandler(function(response) {
+            spinner.style.display = 'none';
+            // Hide Lottie Animation and remove blur
+            document.getElementById('loaderOverlay').style.display = 'none';
+            document.getElementById('mainContainer').classList.remove('blur');
+            if (response.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'Proses Outbound telah berhasil dilakukan.',
+                timer: 2000,
+                showConfirmButton: false
+              });
+              let html = '<h5 class="text-success"><i class="fas fa-check-circle"></i> Proses Outbound Berhasil!</h5>';
+              html += '<h6>PICKING LIST:</h6>';
+              html += '<table class="table table-striped">';
+              html += '<thead><tr><th>Lane</th><th>Zona</th><th>MID</th><th>Quantity</th><th>Date</th></tr></thead><tbody>';
+              response.pickingList.forEach(item => {
+                html += `<tr><td>${item.lane}</td><td>${item.zona}</td><td>${item.mid}</td><td>${item.quantity}</td><td>${item.date}</td></tr>`;
+              });
+              html += '</tbody></table>';
+              
+              if (response.insufficientItems.length > 0) {
+                html += '<h6 class="mt-4 text-danger">Stok Tidak Cukup:</h6>';
+                html += '<ul>';
+                response.insufficientItems.forEach(item => {
+                  html += `<li>MID <strong>${item.mid}</strong> di Lane <strong>${item.lane}</strong> kekurangan: <strong>${item.shortage}</strong></li>`;
+                });
+                html += '</ul>';
+              }
+
+              document.getElementById('result').innerHTML = html;
+              // Refresh MID options setelah proses outbound
+              populateMIDOptions();
+              // Reset form setelah berhasil
+              document.getElementById('outboundForm').reset();
+              // Disable Lane dan Quantity input setelah reset
+              const laneSelects = document.querySelectorAll('.lane-select');
+              laneSelects.forEach(select => {
+                select.disabled = true;
+                select.innerHTML = '<option value="" disabled selected>Pilih MID terlebih dahulu</option>';
+              });
+              const quantityInputs = document.querySelectorAll('.quantity-input');
+              quantityInputs.forEach(input => {
+                input.disabled = true;
+                input.placeholder = 'Masukkan Quantity';
+                input.value = '';
+              });
+              // Clear available quantities
+              const availableQuantities = document.querySelectorAll('.available-quantity');
+              availableQuantities.forEach(div => {
+                div.textContent = '';
+              });
+            }
+          }).withFailureHandler(function(error) {
+            spinner.style.display = 'none';
+            // Hide Lottie Animation and remove blur
+            document.getElementById('loaderOverlay').style.display = 'none';
+            document.getElementById('mainContainer').classList.remove('blur');
+            Swal.fire({
+              icon: 'error',
+              title: 'Terjadi Kesalahan',
+              text: error.message,
+            });
+          }).processOutboundFIFO(outboundOrders);
+        } else {
+          spinner.style.display = 'none';
+          // Hide Lottie Animation and remove blur
+          document.getElementById('loaderOverlay').style.display = 'none';
+          document.getElementById('mainContainer').classList.remove('blur');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
