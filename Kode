@@ -1,8 +1,9 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('Index').evaluate()
-  //return HtmlService.createTemplateFromFile('Builder8').evaluate()
+  //return HtmlService.createTemplateFromFile('Builder10').evaluate()
     .addMetaTag('viewport', 'width=device-width , initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    //.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    .setTitle('WFG');
 }
 
 // Function to get the HTML for a specific page
@@ -16,6 +17,351 @@ function redirectToMainPage() {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('WFG');
 }
+
+function LoadchartapexSankey() {
+  // Buka spreadsheet berdasarkan ID
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
+  const sheet = ss.getSheetByName('LANE STATUS');
+
+  // Ambil data dari sheet
+  const data = sheet.getDataRange().getValues();
+
+  // Kembalikan data ke sisi klien
+  return data;
+}
+
+/* Builder PRD */
+/**
+ * Fungsi utama untuk memproses data form dan menyimpannya ke Google Sheets.
+ * @param {Object} formData - Data yang dikirim dari client-side.
+ * @returns {String} - Tabel HTML yang menampilkan data yang telah disubmit.
+ */
+function processForm(formData) {
+  try {
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'; // Ganti dengan ID Sheet Anda
+    const sheetName = 'Database';
+    const ss = SpreadsheetApp.openById(sheetId);
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+    }
+    
+    // Header utama jika sheet kosong
+    if (sheet.getLastRow() === 0) {
+      const mainHeaders = ['Timestamp', 'Tanggal', 'Shift', 'Mesin', 'Size', 'Material', 'Stock Awal', 
+                          '06:00-07:00', '07:00-08:00', '08:00-09:00', '09:00-10:00', 
+                          '10:00-11:00', '11:00-12:00', 'Sisa Produksi Mesin', 'Total Pakai', 'Retur'];
+      sheet.appendRow(mainHeaders);
+      // Format header utama
+      const headerRange = sheet.getRange(1, 1, 1, mainHeaders.length);
+      headerRange.setBackground('#343a40').setFontColor('#ffffff').setFontWeight('bold');
+    }
+    
+    // Ekstrak informasi umum dari form
+    const TanggalInput = formData.tanggal; // Format input: yyyy-mm-dd
+    const Shift = formData.shift;
+    const Mesin = formData.mesin;
+    const Size = formData.size;
+
+    // Format Tanggal ke dd-MM-yyyy
+    const Tanggal = formatDate(TanggalInput, "dd-MM-yyyy");
+  
+    // Format Timestamp sesuai WIB
+    const timestamp = Utilities.formatDate(new Date(), SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "dd-MM-yyyy HH:mm:ss");
+    
+    // Daftar material
+    const materials = [
+      "PULP LIGHTHOUSE", "SAP DIAPERS", "BOTTOM TISSUE", "NW INNERWAISTS SSS",
+      "NW LEGCUFF SMS", "NWO AT", "NW OUTERWAIST SSS", "PRINTING SACHET",
+      "PE FILM", "NW BACKSHEET SSS", "GLUE CORE", "GLUE CONSTRUCTION", 
+      "GLUE ELASTIC", "ELASTIC 620DTEX", "NW ADL", "PRINTING BHP (SMALL)",
+      "PRINTING BHP (MEDIUM)", "PRINTING BHP (LARGE)", "KARDUS BHP (SMALL)", 
+      "KARDUS BHP (MEDIUM)", "KARDUS BHP (LARGE)", "ISOLASI (SACHET)",
+      "ISOLASI (BAG)", "ISOLASI (REPACK)"
+    ];
+  
+    // Rentang waktu berdasarkan Shift
+    const timeRanges = {
+      "1": ["06:00-07:00", "07:00-08:00", "08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00"],
+      "2": ["14:00-15:00", "15:00-16:00", "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00"],
+      "3": ["22:00-23:00", "23:00-00:00", "00:00-01:00", "01:00-02:00", "02:00-03:00", "03:00-04:00"]
+    };
+  
+    const selectedTimeRanges = timeRanges[Shift] || [];
+  
+    // Fungsi untuk mendapatkan Shift terakhir di sheet
+    function getLastShift() {
+      if (sheet.getLastRow() < 2) return null; // Tidak ada data selain header utama
+      const lastDataRow = sheet.getLastRow();
+      return sheet.getRange(lastDataRow, 3).getValue(); // Shift berada di kolom 3
+    }
+  
+    const lastShift = getLastShift();
+  
+    // Jika Shift baru, tambahkan header shift
+    if (lastShift !== Shift) {
+      // Insert header shift
+      const shiftHeader = `Shift ${Shift} - Data`;
+      sheet.appendRow([shiftHeader]);
+      // Merge cells untuk header shift
+      const lastRow = sheet.getLastRow();
+      sheet.getRange(lastRow, 1, 1, 15).merge().setBackground('#6c757d').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+      
+      // Tambahkan header kolom data setelah header shift
+      sheet.appendRow(['Timestamp', 'Tanggal', 'Shift', 'Mesin', 'Size', 'Material', 'Stock Awal', 
+                      '06:00-07:00', '07:00-08:00', '08:00-09:00', '09:00-10:00', 
+                      '10:00-11:00', '11:00-12:00', 'Sisa Produksi Mesin', 'Total Pakai', 'Retur']);
+      const dataHeaderRange = sheet.getRange(sheet.getLastRow(), 1, 1, 15);
+      dataHeaderRange.setBackground('#343a40').setFontColor('#ffffff').setFontWeight('bold');
+    }
+  
+    // Loop melalui setiap material untuk menyimpan data
+    materials.forEach(function(material) {
+      const stockAwal = parseFloat(formData["stockAwal_" + material]) || 0;
+      const sisa = parseFloat(formData["sisa_" + material]) || 0;
+      const total = parseFloat(formData["total_" + material]) || 0;
+      const retur = parseFloat(formData["retur_" + material]) || 0;
+  
+      // Mengumpulkan data per jam untuk setiap material
+      const hours = selectedTimeRanges.map(function(time) {
+        return parseFloat(formData[`${material}_${time}`]) || 0;
+      });
+  
+      // Menyiapkan data baris untuk sheet
+      const rowData = [timestamp, Tanggal, Shift, Mesin, Size, material, stockAwal].concat(hours, [sisa, total, retur]);
+  
+      // Append row
+      sheet.appendRow(rowData);
+      const appendedRow = sheet.getLastRow();
+      const range = sheet.getRange(appendedRow, 1, 1, rowData.length);
+      
+      // Atur border untuk baris yang baru ditambahkan
+      range.setBorder(true, true, true, true, true, true, "black", SpreadsheetApp.BorderStyle.SOLID);
+    });
+  
+    // Tambahkan baris kosong untuk spasi antar pengiriman data
+    sheet.appendRow(['','','','','','','','','','','','','','','']);
+  
+    // Membuat HTML tabel dari data yang dikirim untuk ditampilkan sebagai konfirmasi
+    let htmlTable = `
+      <h3 class="text-center">Hasil Pengiriman Laporan Pemakaian Material</h3>
+      <div style="overflow-x:auto;">
+        <table class="table table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>Material</th>
+              <th>Stock Awal</th>
+              ${selectedTimeRanges.map(time => `<th>${time}</th>`).join('')}
+              <th>Sisa Produksi Mesin</th>
+              <th>Total Pakai</th>
+              <th>Retur</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+  
+    materials.forEach(function(material) {
+      const stockAwal = parseFloat(formData["stockAwal_" + material]) || 0;
+      const sisa = parseFloat(formData["sisa_" + material]) || 0;
+      const total = parseFloat(formData["total_" + material]) || 0;
+      const retur = parseFloat(formData["retur_" + material]) || 0;
+  
+      const row = `
+        <tr>
+          <td>${material}</td>
+          <td>${stockAwal}</td>
+          ${selectedTimeRanges.map(time => `<td>${parseFloat(formData[`${material}_${time}`]) || 0}</td>`).join('')}
+          <td>${sisa}</td>
+          <td>${total}</td>
+          <td>${retur}</td>
+        </tr>
+      `;
+      htmlTable += row;
+    });
+  
+    htmlTable += `
+          </tbody>
+        </table>
+      </div>
+    `;
+  
+    return htmlTable;
+  } catch (error) {
+    Logger.log(error);
+    return `<p>Error: ${error.toString()}</p>`;
+  }
+}
+
+/**
+ * Fungsi untuk mengambil semua data dari sheet dan mengembalikannya sebagai tabel HTML.
+ * @returns {String} - Tabel HTML yang menampilkan semua data.
+ */
+function getAllData() {
+  try {
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+    const sheetName = 'Database';
+    const ss = SpreadsheetApp.openById(sheetId);
+    const sheet = ss.getSheetByName(sheetName);
+    
+    if (!sheet) return '<p>Tidak ada data yang tersedia.</p>';
+    
+    const data = sheet.getDataRange().getValues();
+    if (data.length === 0) return '<p>Tidak ada data yang tersedia.</p>';
+    
+    // Mendapatkan indeks kolom yang akan ditampilkan (hapus 'Timestamp')
+    const headers = data[0];
+    const displayHeaders = headers.filter((header, index) => index !== 0); // Menghapus kolom 0 (Timestamp)
+    
+    let htmlTable = `
+      <h3 class="text-center">Semua Data Laporan Pemakaian Material</h3>
+      <div style="overflow-x:auto;">
+        <table class="table table-bordered">
+          <thead class="table-dark">
+            <tr>
+              ${displayHeaders.map(header => `<th>${header}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    // Mulai dari baris ke-2
+    for (let i = 1; i < data.length; i++) {
+      // Skip header shift rows
+      if (data[i][0].toString().startsWith('Shift')) continue;
+      
+      // Filter data: hanya menampilkan kolom selain Timestamp
+      const rowData = data[i].filter((cell, index) => index !== 0);
+      
+      // Format 'Tanggal' jika diperlukan (pastikan kolom 'Tanggal' berada di indeks yang benar)
+      // Misalnya, jika 'Tanggal' adalah kolom ke-2 (index 1 sebelum filter)
+      const tanggalIndex = 1; // Sesuaikan jika posisi 'Tanggal' berbeda
+      if (rowData[tanggalIndex - 1]) { // Setelah filter, 'Tanggal' menjadi indeks 0
+        rowData[tanggalIndex - 1] = formatDate(rowData[tanggalIndex - 1], "dd-MM-yyyy");
+      }
+      
+      htmlTable += `<tr>${rowData.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+    }
+    
+    htmlTable += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    return htmlTable;
+    
+  } catch (error) {
+    Logger.log(error);
+    return `<p>Error: ${error.toString()}</p>`;
+  }
+}
+
+/**
+ * Fungsi untuk mengambil data berdasarkan filter Shift, Mesin, dan Size.
+ * @param {String} shift - Shift yang dipilih (1, 2, 3) atau kosong untuk semua shift.
+ * @param {String} mesin - Mesin yang dipilih (1, 2, 3) atau kosong untuk semua mesin.
+ * @param {String} size - Size yang dipilih (S, M, L, XL, XXL) atau kosong untuk semua size.
+ * @returns {String} - Tabel HTML yang menampilkan data sesuai filter.
+ */
+function getFilteredData(shift, mesin, size) {
+  try {
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+    const sheetName = 'Database';
+    const ss = SpreadsheetApp.openById(sheetId);
+    const sheet = ss.getSheetByName(sheetName);
+    
+    if (!sheet) return '<p>Tidak ada data yang tersedia.</p>';
+    
+    const data = sheet.getDataRange().getValues();
+    if (data.length === 0) return '<p>Tidak ada data yang tersedia.</p>';
+    
+    // Mendapatkan indeks kolom yang akan ditampilkan (hapus 'Timestamp')
+    const headers = data[0];
+    const displayHeaders = headers.filter((header, index) => index !== 0); // Menghapus kolom 0 (Timestamp)
+    
+    let htmlTable = `
+      <h3 class="text-center">Data Laporan Pemakaian Material</h3>
+      <div style="overflow-x:auto;">
+        <table class="table table-bordered">
+          <thead class="table-dark">
+            <tr>
+              ${displayHeaders.map(header => `<th>${header}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    // Mulai dari baris ke-2
+    for (let i = 1; i < data.length; i++) {
+      // Skip header shift rows
+      if (data[i][0].toString().startsWith('Shift')) continue;
+      
+      // Filter berdasarkan Shift, Mesin, dan Size
+      const rowShift = data[i][2].toString();
+      const rowMesin = data[i][3].toString();
+      const rowSize = data[i][4].toString();
+  
+      const matchShift = shift ? (rowShift === shift) : true;
+      const matchMesin = mesin ? (rowMesin === mesin) : true;
+      const matchSize = size ? (rowSize === size) : true;
+  
+      if (matchShift && matchMesin && matchSize) {
+        // Filter data: hanya menampilkan kolom selain Timestamp
+        const rowData = data[i].filter((cell, index) => index !== 0);
+        
+        // Format 'Tanggal' jika diperlukan (pastikan kolom 'Tanggal' berada di indeks yang benar)
+        // Misalnya, jika 'Tanggal' adalah kolom ke-2 (index 1 sebelum filter)
+        const tanggalIndex = 1; // Sesuaikan jika posisi 'Tanggal' berbeda
+        if (rowData[tanggalIndex - 1]) { // Setelah filter, 'Tanggal' menjadi indeks 0
+          rowData[tanggalIndex - 1] = formatDate(rowData[tanggalIndex - 1], "dd-MM-yyyy");
+        }
+        
+        htmlTable += `<tr>${rowData.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+      }
+    }
+    
+    htmlTable += `
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    if (!htmlTable.includes('<tr>')) {
+      htmlTable = '<p>Tidak ada data yang sesuai dengan filter yang dipilih.</p>';
+    }
+
+    return htmlTable;
+
+  } catch (error) {
+    Logger.log(error);
+    return `<p>Error: ${error.toString()}</p>`;
+  }
+}
+
+/**
+ * Fungsi untuk memformat tanggal sesuai dengan format yang diinginkan.
+ * @param {String|Date} dateInput - Tanggal dalam format string atau objek Date.
+ * @param {String} format - Format yang diinginkan, misalnya "dd-MM-yyyy".
+ * @returns {String} - Tanggal yang diformat.
+ */
+function formatDate(dateInput, format) {
+  if (!dateInput) return '';
+  
+  let dateObj;
+  
+  if (typeof dateInput === 'string') {
+    // Parsing tanggal dari string
+    dateObj = new Date(dateInput);
+  } else if (dateInput instanceof Date) {
+    dateObj = dateInput;
+  } else {
+    return '';
+  }
+  
+  return Utilities.formatDate(dateObj, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), format);
+}
+
+
 
 /**
  * INCLUDE HTML PARTS, EG. JAVASCRIPT, CSS, OTHER HTML FILES
@@ -145,7 +491,7 @@ function getDataSO() {
     }
   });
 
-  return result; // Return the aggregated result
+  return result; // Return the aggregated resultsubmit
 }
 
 function getConv(productName) {
@@ -724,6 +1070,7 @@ function getLaneStatusData() {
 
 
 
+
 /**
  * Fungsi pembulatan kustom.
  * Jika desimal >= 0.4, bulatkan ke atas. Jika < 0.4, bulatkan ke bawah.
@@ -933,8 +1280,7 @@ function setInitialPassword(initialPassword) {
 
 
 
-/* BUILDER7 */
-
+/* Moving Lane Builder */
 // Function to get the data for Lane Status
 function getDataLaneStatus() {
   const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
@@ -946,38 +1292,63 @@ function getDataLaneStatus() {
     if (date instanceof Date) {
       return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
     }
-    return date; // Jika bukan objek Date, kembalikan apa adanya
+    return date; // If not a Date object, return as is
   }
 
-  // Konversi kolom Date ke format string yang mudah ditampilkan
+  // Convert Date column to string format for easier display
   const formattedData = data.map(row => {
     if (row[5] instanceof Date) {
-      row[5] = formatDateToString(row[5]); // Konversi kolom Date (indeks 5) ke string
+      row[5] = formatDateToString(row[5]); // Convert Date column (index 5) to string
     }
     return row;
   });
 
-  return formattedData; // Kembalikan data yang sudah diformat
+  return formattedData; // Return the formatted data
 }
 
+// Helper function to determine Max Pallet Based On Lane ID
+function getMaxPallet(laneId) {
+  const specialLanesA = ["11A", "17A", "23A"];
+  const specialLanesB = ["10B", "22B"];
+  if (specialLanesA.includes(laneId) || specialLanesB.includes(laneId)) {
+    return 30;
+  }
+  return 75;
+}
+
+// Define mapping from MID to converter (Perbaikan sesuai Perintah 1)
+const productMappings = {
+  "L11": { converter: 56 },
+  "L1": { converter: 64 },
+  "L28": { converter: 32 },
+  "L8": { converter: 45 },
+  "M11": { converter: 56 },
+  "M1": { converter: 64 },
+  "M32": { converter: 32 },
+  "XL11": { converter: 48 },
+  "XL1": { converter: 49 },
+  "XL26": { converter: 32 },
+  "XL7": { converter: 45 } // Updated from 9 to 45
+};
+
 // Function to move data from Source to Target and log it to the "MOVING LOG" sheet
-function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane) {
+function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane, transferQuantity, alasan = "") {
   try {
     const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Replace with your Spreadsheet ID
     const sheet = ss.getSheetByName('LANE STATUS'); // Replace with your LANE STATUS sheet
     if (!sheet) {
-      throw new Error('Sheet "LANE STATUS" tidak ditemukan.');
+      throw new Error('Sheet "LANE STATUS" not found.');
     }
     const data = sheet.getDataRange().getValues();
     
     let sourceRowIndex = -1;
     let targetRowIndex = -1;
 
-    // Find the source and target rows
-    for (let i = 1; i < data.length; i++) { // Start from 1 to skip the header
+    // Locate source and target rows
+    for (let i = 1; i < data.length; i++) { // Start from 1 to skip header
       let row = data[i];
       if (row[0].trim().toUpperCase() === sourceLane.trim().toUpperCase() && row[1].trim().toUpperCase() === sourceZona.trim().toUpperCase()) {
-        sourceRowIndex = i + 1; // Spreadsheet rows start from 1
+        sourceRowIndex = i + 1; // Spreadsheet rows are 1-based
       }
       if (row[0].trim().toUpperCase() === targetLane.trim().toUpperCase() && row[1].trim().toUpperCase() === targetZona.trim().toUpperCase()) {
         targetRowIndex = i + 1;
@@ -985,60 +1356,758 @@ function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane) {
     }
 
     if (sourceRowIndex === -1) {
-      throw new Error(`Sumber data tidak ditemukan untuk Zona ${sourceZona} dan Lane ${sourceLane}.`);
+      throw new Error(`Source data not found for Zona ${sourceZona} and Lane ${sourceLane}.`);
     }
 
     if (targetRowIndex === -1) {
-      throw new Error(`Target data tidak ditemukan untuk Zona ${targetZona} dan Lane ${targetLane}.`);
+      throw new Error(`Target data not found for Zona ${targetZona} and Lane ${targetLane}.`);
     }
 
-    // Get the data from the source
+    // Get data from source
     const sourceData = data[sourceRowIndex - 1];
-    const [laneSumber, zonaSumber, quantitySumber, midSumber, settingSumber, dateSumber] = sourceData;
+    let [laneSumber, zonaSumber, quantitySumber, midSumber, settingSumber, dateSumber] = sourceData;
 
-    // Validate if there is data to be moved (Quantity and MID must be present)
-    if (!quantitySumber || !midSumber) {
-      throw new Error(`Tidak ada data Quantity atau MID yang dapat dipindahkan dari Zona ${sourceZona} dan Lane ${sourceLane}.`);
+    quantitySumber = parseInt(quantitySumber, 10);
+    if (isNaN(quantitySumber) || quantitySumber <= 0) {
+      throw new Error(`No Quantity data available to transfer from Zona ${sourceZona} and Lane ${sourceLane}.`);
     }
 
-    // Get the data from the target
+    // Validate transferQuantity
+    transferQuantity = parseInt(transferQuantity, 10);
+    if (isNaN(transferQuantity) || transferQuantity < 1) {
+      throw new Error('Transfer Quantity must be valid.');
+    }
+
+    if (transferQuantity > quantitySumber) {
+      throw new Error(`Transfer Quantity (${transferQuantity}) exceeds source Quantity (${quantitySumber}).`);
+    }
+
+    // Handle the case where source and target are the same
+    if (
+      sourceZona.trim().toUpperCase() === targetZona.trim().toUpperCase() &&
+      sourceLane.trim().toUpperCase() === targetLane.trim().toUpperCase()
+    ) {
+      // Quantities remain the same; log the transfer
+      const logSheet = ss.getSheetByName('MOVING LOG') || ss.insertSheet('MOVING LOG');
+      
+      // If log sheet is empty, add headers
+      if (logSheet.getLastRow() === 0) {
+        logSheet.appendRow(['Timestamp', 'Zona Sumber', 'Lane Sumber', 'Zona Target', 'Lane Target', 'Alasan', 'Lane', 'Zona', 'Quantity', 'MID', 'Setting', 'Date']);
+      }
+
+      // Log the transfer
+      const timestamp = new Date();
+      logSheet.appendRow([timestamp, sourceZona, sourceLane, targetZona, targetLane, alasan, sourceLane, sourceZona, transferQuantity, midSumber, settingSumber, dateSumber]);
+
+      Logger.log('Transfer within the same lane and zone completed. Quantities remain unchanged.');
+      return 'Transfer within the same lane and zone completed. Quantities remain unchanged.';
+    }
+
+    // **Penambahan Logika untuk Menolak Transfer dari E ke A/B**
+    if (
+      sourceZona.trim().toUpperCase() === 'E' &&
+      (targetZona.trim().toUpperCase() === 'A' || targetZona.trim().toUpperCase() === 'B')
+    ) {
+      throw new Error('Pemindahan data dari Zona E ke Zona A/B tidak diizinkan.');
+    }
+
+    // Additional logic for transferring to a different zone (Command 5)
+    let isDifferentZone = sourceZona.trim().toUpperCase() !== targetZona.trim().toUpperCase();
+    if (isDifferentZone && alasan.trim() === "") {
+      throw new Error('Transferring to a different zone requires a reason.');
+    }
+
+    // Get data from target
     const targetData = data[targetRowIndex - 1];
-    const [laneTargetCheck, zonaTargetCheck, quantityTarget, midTarget, settingTarget, dateTarget] = targetData;
+    let [laneTargetCheck, zonaTargetCheck, quantityTarget, midTarget, settingTarget, dateTarget] = targetData;
 
-    // Do not overwrite if the target lane has data
-    if (quantityTarget || midTarget || settingTarget || dateTarget) {
-      throw new Error(`Lane Target ${targetLane} sudah memiliki data. Tidak dapat memindahkan.`);
+    quantityTarget = parseInt(quantityTarget, 10);
+    if (isNaN(quantityTarget)) {
+      quantityTarget = 0;
     }
 
-    // Update the data at the target
-    sheet.getRange(targetRowIndex, 3).setValue(quantitySumber); // Quantity
-    sheet.getRange(targetRowIndex, 4).setValue(midSumber);       // MID
-    sheet.getRange(targetRowIndex, 5).setValue(settingSumber);   // Setting
-    sheet.getRange(targetRowIndex, 6).setValue(dateSumber);      // Date
-
-    // Clear the data at the source (Quantity and MID)
-    sheet.getRange(sourceRowIndex, 3).setValue(''); // Quantity
-    sheet.getRange(sourceRowIndex, 4).setValue(''); // MID
-    sheet.getRange(sourceRowIndex, 5).setValue(''); // Setting
-    sheet.getRange(sourceRowIndex, 6).setValue(''); // Date
-
-    // Log the move to the "MOVING LOG" sheet
-    const logSheet = ss.getSheetByName('MOVING LOG') || ss.insertSheet('MOVING LOG');
-    
-    // If the log sheet is empty, add headers
-    if (logSheet.getLastRow() === 0) {
-      logSheet.appendRow(['Timestamp', 'Zona Sumber', 'Lane Sumber', 'Zona Target', 'Lane Target', 'Lane', 'Zona', 'Quantity', 'MID', 'Setting', 'Date']);
+    // Additional logic for conversion when transferring from A/B to E (Command 6)
+    let conversionFactor = 1;
+    let converted = false;
+    if ((sourceZona.trim().toUpperCase() === 'A' || sourceZona.trim().toUpperCase() === 'B') && targetZona.trim().toUpperCase() === 'E') {
+      // Find converter based on MID
+      if (productMappings[midSumber]) {
+        conversionFactor = productMappings[midSumber].converter;
+        converted = true;
+      } else {
+        throw new Error(`No converter found for MID ${midSumber}.`);
+      }
     }
 
-    // Log the moved data
-    const timestamp = new Date();
-    logSheet.appendRow([timestamp, zonaSumber, laneSumber, targetZona, targetLane, laneSumber, zonaSumber, quantitySumber, midSumber, settingSumber, dateSumber]);
+    let actualTransferQuantity = transferQuantity;
+    let actualTransferQuantityConverted = transferQuantity;
 
-    Logger.log(`Data berhasil dipindahkan dari ${sourceZona} ${sourceLane} ke ${targetZona} ${targetLane}.`);
+    if (converted) {
+      actualTransferQuantityConverted = transferQuantity * conversionFactor;
+    }
 
-    return `Data berhasil dipindahkan dari Zona ${sourceZona} Lane ${sourceLane} ke Zona ${targetZona} Lane ${targetLane}.`;
+    // If MID in target is same as source, perform quantity addition
+    if (midTarget && midTarget.trim().toUpperCase() === midSumber.trim().toUpperCase()) {
+      // Determine max pallets in target lane
+      const maxPallet = getMaxPallet(targetLane.trim().toUpperCase());
+
+      // Calculate available capacity in target
+      const availableCapacity = maxPallet - quantityTarget;
+
+      if (availableCapacity <= 0) {
+        throw new Error(`Target Lane ${targetLane} is full with Quantity ${quantityTarget}.`);
+      }
+
+      // Determine the actual transfer quantity
+      const actualTransfer = Math.min(actualTransferQuantityConverted, availableCapacity);
+
+      // Update Quantity in target
+      const newQuantityTarget = quantityTarget + actualTransfer;
+      sheet.getRange(targetRowIndex, 3).setValue(newQuantityTarget); // Quantity
+
+      // If there's Setting and Date to transfer, update them accordingly
+      sheet.getRange(targetRowIndex, 5).setValue(settingSumber); // Setting
+      sheet.getRange(targetRowIndex, 6).setValue(dateSumber);    // Date
+
+      // Calculate quantity to deduct from source
+      let quantityToDeduct = converted ? Math.ceil(actualTransfer / conversionFactor) : transferQuantity;
+      const newQuantitySumber = quantitySumber - quantityToDeduct;
+      sheet.getRange(sourceRowIndex, 3).setValue(newQuantitySumber); // Quantity
+
+      // If there's remaining quantity in source, retain Setting and Date
+      if (newQuantitySumber > 0) {
+        sheet.getRange(sourceRowIndex, 5).setValue(settingSumber); // Setting
+        sheet.getRange(sourceRowIndex, 6).setValue(dateSumber);    // Date
+      } else {
+        // If no remaining quantity, clear MID, Setting, and Date
+        sheet.getRange(sourceRowIndex, 3).setValue(0); // Quantity set to 0
+        sheet.getRange(sourceRowIndex, 4).setValue(''); // Clear MID
+        sheet.getRange(sourceRowIndex, 5).setValue(''); // Clear Setting
+        sheet.getRange(sourceRowIndex, 6).setValue(''); // Clear Date
+      }
+
+      // Log the transfer
+      const logSheet = ss.getSheetByName('MOVING LOG') || ss.insertSheet('MOVING LOG');
+      
+      // If log sheet is empty, add headers
+      if (logSheet.getLastRow() === 0) {
+        logSheet.appendRow(['Timestamp', 'Zona Sumber', 'Lane Sumber', 'Zona Target', 'Lane Target', 'Alasan', 'Lane', 'Zona', 'Quantity', 'MID', 'Setting', 'Date']);
+      }
+
+      // Log the transferred data
+      const timestamp = new Date();
+      logSheet.appendRow([timestamp, sourceZona, sourceLane, targetZona, targetLane, alasan, sourceLane, sourceZona, actualTransfer, midSumber, settingSumber, dateSumber]);
+
+      Logger.log(`Data successfully transferred: ${actualTransfer} from Zona ${sourceZona} Lane ${sourceLane} to Zona ${targetZona} Lane ${targetLane}.`);
+      
+      return `Data successfully transferred: ${actualTransfer} from Zona ${sourceZona} Lane ${sourceLane} to Zona ${targetZona} Lane ${targetLane}.`;
+    } else {
+      // If MID in target is different or empty
+      if (midTarget && midTarget.trim() !== "") {
+        throw new Error(`Target Lane ${targetLane} already has a different MID. Cannot transfer data.`);
+      }
+
+      // Determine max pallets in target lane
+      const maxPallet = getMaxPallet(targetLane.trim().toUpperCase());
+
+      // Calculate available capacity in target
+      const availableCapacity = maxPallet - quantityTarget;
+
+      if (availableCapacity <= 0) {
+        throw new Error(`Target Lane ${targetLane} is full with Quantity ${quantityTarget}.`);
+      }
+
+      // Determine the actual transfer quantity
+      const actualTransfer = Math.min(actualTransferQuantityConverted, availableCapacity);
+
+      // Update Quantity in target
+      const newQuantityTarget = quantityTarget + actualTransfer;
+      sheet.getRange(targetRowIndex, 3).setValue(newQuantityTarget); // Quantity
+
+      // Update MID, Setting, and Date in target
+      sheet.getRange(targetRowIndex, 4).setValue(midSumber);        // MID
+      sheet.getRange(targetRowIndex, 5).setValue(settingSumber);    // Setting
+      sheet.getRange(targetRowIndex, 6).setValue(dateSumber);       // Date
+
+      // Calculate quantity to deduct from source
+      let quantityToDeduct = converted ? Math.ceil(actualTransfer / conversionFactor) : transferQuantity;
+      const newQuantitySumber = quantitySumber - quantityToDeduct;
+      sheet.getRange(sourceRowIndex, 3).setValue(newQuantitySumber); // Quantity
+
+      // If there's remaining quantity in source, retain Setting and Date
+      if (newQuantitySumber > 0) {
+        sheet.getRange(sourceRowIndex, 5).setValue(settingSumber); // Setting
+        sheet.getRange(sourceRowIndex, 6).setValue(dateSumber);    // Date
+      } else {
+        // If no remaining quantity, clear MID, Setting, and Date
+        sheet.getRange(sourceRowIndex, 3).setValue(0); // Quantity set to 0
+        sheet.getRange(sourceRowIndex, 4).setValue(''); // Clear MID
+        sheet.getRange(sourceRowIndex, 5).setValue(''); // Clear Setting
+        sheet.getRange(sourceRowIndex, 6).setValue(''); // Clear Date
+      }
+
+      // Log the transfer
+      const logSheet = ss.getSheetByName('MOVING LOG') || ss.insertSheet('MOVING LOG');
+      
+      // If log sheet is empty, add headers
+      if (logSheet.getLastRow() === 0) {
+        logSheet.appendRow(['Timestamp', 'Zona Sumber', 'Lane Sumber', 'Zona Target', 'Lane Target', 'Alasan', 'Lane', 'Zona', 'Quantity', 'MID', 'Setting', 'Date']);
+      }
+
+      // Log the transferred data
+      const timestamp = new Date();
+      logSheet.appendRow([timestamp, sourceZona, sourceLane, targetZona, targetLane, alasan, sourceLane, sourceZona, actualTransfer, midSumber, settingSumber, dateSumber]);
+
+      Logger.log(`Data successfully transferred: ${actualTransfer} from Zona ${sourceZona} Lane ${sourceLane} to Zona ${targetZona} Lane ${targetLane}.`);
+
+      return `Data successfully transferred: ${actualTransfer} from Zona ${sourceZona} Lane ${sourceLane} to Zona ${targetZona} Lane ${targetLane}.`;
+    }
   } catch (error) {
-    Logger.log(`Error di moveDataWithLogging: ${error.message}`);
-    throw new Error(`Tidak dapat memindahkan data: ${error.message}`);
+    Logger.log(`Error in moveDataWithLogging: ${error.message}`);
+    throw new Error(`Unable to transfer data: ${error.message}`);
   }
+}
+
+
+
+
+/* Builder10 */
+// Konstanta untuk Spreadsheet
+const SPREADSHEET_ID = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+const SHEET_NAME = 'LANE STATUS';
+const PICKING_LIST_SHEET_NAME = 'PICKING LIST'; // Nama baru sheet Picking List
+
+/**
+ * Fungsi untuk mendapatkan indeks kolom dengan ignore case dan trim
+ */
+function getColumnIndex(headers, columnName) {
+  for (let i = 0; i < headers.length; i++) {
+    if (headers[i].toString().trim().toLowerCase() === columnName.toLowerCase()) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Fungsi utama untuk memproses outbound menggunakan FIFO dan membuat PICKING LIST
+ * Dipanggil dari frontend
+ * @param {Array} outboundOrders - Array objek {mid, lane, quantity}
+ * @returns {Object} Result object dengan status dan pickingList atau error
+ */
+function processOutboundFIFO(outboundOrders) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  
+  // Ambil semua data dari sheet
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const zonaIndex = getColumnIndex(headers, 'Zona');
+  const quantityIndex = getColumnIndex(headers, 'Quantity');
+  const midIndex = getColumnIndex(headers, 'MID');
+  const dateIndex = getColumnIndex(headers, 'Date');
+  
+  // Log untuk debugging
+  Logger.log('Lane Index: ' + laneIndex);
+  Logger.log('Zona Index: ' + zonaIndex);
+  Logger.log('Quantity Index: ' + quantityIndex);
+  Logger.log('MID Index: ' + midIndex);
+  Logger.log('Date Index: ' + dateIndex);
+  
+  if (laneIndex === -1 || zonaIndex === -1 || quantityIndex === -1 || midIndex === -1 || dateIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "Zona", "Quantity", "MID", dan "Date".');
+  }
+  
+  const pickingList = [];
+  const insufficientItems = [];
+  const midsToClear = []; // Menyimpan nomor baris yang MID-nya akan dihapus
+  
+  outboundOrders.forEach(order => {
+    const { mid, lane, quantity: orderQuantity } = order;
+    let remainingQuantity = orderQuantity;
+    
+    // Temukan semua baris dengan MID dan Lane yang dipilih, Quantity >0
+    const filteredItems = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane && row[quantityIndex] > 0)
+                              .sort((a, b) => {
+                                const dateA = a[dateIndex] ? new Date(a[dateIndex]) : new Date('9999-12-31');
+                                const dateB = b[dateIndex] ? new Date(b[dateIndex]) : new Date('9999-12-31');
+                                return dateA - dateB;
+                              });
+    
+    if (filteredItems.length === 0) {
+      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
+      return;
+    }
+    
+    filteredItems.forEach(row => {
+      if (remainingQuantity <= 0) return;
+      
+      const availableQuantity = row[quantityIndex];
+      const deductQuantity = Math.min(availableQuantity, remainingQuantity);
+      
+      // Update Quantity di sheet
+      const rowNumber = data.indexOf(row) + 1;
+      const newQuantity = availableQuantity - deductQuantity;
+      sheet.getRange(rowNumber, quantityIndex + 1).setValue(newQuantity);
+      
+      // Tambahkan ke PICKING LIST
+      pickingList.push({
+        lane: row[laneIndex],
+        zona: row[zonaIndex],
+        mid: mid,
+        quantity: deductQuantity,
+        date: row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A'
+      });
+      
+      remainingQuantity -= deductQuantity;
+      
+      // Jika Quantity sudah nol, tandai baris untuk menghapus MID
+      if (newQuantity === 0) {
+        midsToClear.push(rowNumber);
+      }
+    });
+    
+    if (remainingQuantity > 0) {
+      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
+    }
+  });
+  
+  // Tulis PICKING LIST ke sheet baru atau sheet yang sama
+  let pickingSheet = ss.getSheetByName(PICKING_LIST_SHEET_NAME);
+  if (!pickingSheet) {
+    pickingSheet = ss.insertSheet(PICKING_LIST_SHEET_NAME);
+    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
+  } else {
+    pickingSheet.clearContents();
+    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
+  }
+  
+  pickingList.forEach(item => {
+    pickingSheet.appendRow([item.lane, item.zona, item.mid, item.quantity, item.date]);
+  });
+  
+  // Hapus data MID pada baris yang Quantity-nya nol
+  if (midsToClear.length > 0) {
+    midsToClear.forEach(rowNumber => {
+      sheet.getRange(rowNumber, midIndex + 1).setValue(''); // Menghapus nilai MID
+    });
+  }
+  
+  return {
+    success: true,
+    pickingList: pickingList,
+    insufficientItems: insufficientItems
+  };
+}
+
+/**
+ * Fungsi untuk mengambil daftar unik MID dari spreadsheet
+ * Dipanggil dari frontend
+ * @returns {Array} Array unik MID
+ */
+function getMIDs() {
+  const cache = CacheService.getScriptCache();
+  const cachedMIDs = cache.get('uniqueMIDs');
+  
+  if (cachedMIDs) {
+    return JSON.parse(cachedMIDs);
+  }
+  
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const midIndex = getColumnIndex(headers, 'MID');
+  
+  // Log untuk debugging
+  Logger.log('MID Index: ' + midIndex);
+  
+  if (midIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "MID".');
+  }
+  
+  const mids = data.slice(1).map(row => row[midIndex]).filter(mid => mid && mid.toString().trim() !== '');
+  const uniqueMIDs = [...new Set(mids)];
+  
+  // Cache the unique MIDs for 10 minutes
+  cache.put('uniqueMIDs', JSON.stringify(uniqueMIDs), 600);
+  
+  return uniqueMIDs;
+}
+
+/**
+ * Fungsi untuk mengambil daftar unik lanes untuk MID yang diberikan, diurutkan berdasarkan FIFO
+ * Dipanggil dari frontend
+ * @param {String} mid - MID yang dipilih
+ * @returns {Array} Array objek lane dengan tanggal yang tersedia untuk MID tersebut, diurutkan berdasarkan FIFO
+ */
+function getLanesForMID(mid) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `lanesForMID_${mid}`;
+  const cachedLanes = cache.get(cacheKey);
+  
+  if (cachedLanes) {
+    return JSON.parse(cachedLanes);
+  }
+  
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const midIndex = getColumnIndex(headers, 'MID');
+  const quantityIndex = getColumnIndex(headers, 'Quantity');
+  const dateIndex = getColumnIndex(headers, 'Date');
+  
+  if (laneIndex === -1 || midIndex === -1 || dateIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", "Quantity", dan "Date".');
+  }
+  
+  // Filter rows dengan MID dan Quantity >0
+  const filteredRows = data.slice(1).filter(row => row[midIndex] === mid && row[quantityIndex] > 0);
+  
+  // Sort berdasarkan Date ascending (FIFO)
+  filteredRows.sort((a, b) => {
+    const dateA = rowHasDate(a, dateIndex) ? new Date(a[dateIndex]) : new Date('9999-12-31');
+    const dateB = rowHasDate(b, dateIndex) ? new Date(b[dateIndex]) : new Date('9999-12-31');
+    return dateA - dateB;
+  });
+  
+  // Membuat objek untuk menyimpan Lane dan tanggal pertama kali muncul (FIFO)
+  const laneDateMap = {};
+  filteredRows.forEach(row => {
+    const lane = row[laneIndex];
+    const date = row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A';
+    if (!laneDateMap[lane]) {
+      laneDateMap[lane] = date;
+    }
+  });
+  
+  // Extract unique lanes dengan tanggal
+  const lanesWithDates = Object.keys(laneDateMap).map(lane => ({
+    lane: lane,
+    date: laneDateMap[lane]
+  }));
+  
+  // Cache the lanes for this MID for 10 minutes
+  cache.put(cacheKey, JSON.stringify(lanesWithDates), 600);
+  
+  return lanesWithDates;
+}
+
+/**
+ * Fungsi untuk mengambil Quantity yang tersedia untuk MID dan Lane tertentu
+ * Dipanggil dari frontend
+ * @param {String} mid - MID yang dipilih
+ * @param {String} lane - Lane yang dipilih
+ * @returns {Number} Quantity yang tersedia
+ */
+function getAvailableQuantity(mid, lane) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const midIndex = getColumnIndex(headers, 'MID');
+  const quantityIndex = getColumnIndex(headers, 'Quantity');
+  
+  if (laneIndex === -1 || midIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", dan "Quantity".');
+  }
+  
+  // Cari baris yang sesuai dengan MID dan Lane
+  const matchingRows = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane);
+  
+  // Jumlahkan Quantity yang tersedia
+  const totalAvailable = matchingRows.reduce((acc, row) => acc + row[quantityIndex], 0);
+  
+  return totalAvailable;
+}
+
+/**
+ * Helper function untuk memeriksa apakah baris memiliki tanggal
+ */
+function rowHasDate(row, dateIndex) {
+  return row[dateIndex] && row[dateIndex].toString().trim() !== '';
+}
+
+/**
+ * Fungsi untuk mengembalikan halaman HTML utama
+ */
+function getMainPage() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('Outbound FMCG')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+
+/* Builder SYNC */
+/**
+ * Fungsi utama untuk menyinkronkan data dari "SO RAW" ke "LANE STATUS"
+ * @param {string} selectedSession - Sesi yang dipilih oleh pengguna ('morning' atau 'afternoon')
+ */
+function synchronizeData(selectedSession) {
+  const ss = SpreadsheetApp.openById("1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8"); // ID Spreadsheet Anda
+  const soRawSheet = ss.getSheetByName("SO RAW");
+  const laneStatusSheet = ss.getSheetByName("LANE STATUS");
+  
+  if (!soRawSheet || !laneStatusSheet) {
+    throw new Error("Pastikan kedua sheet 'SO RAW' dan 'LANE STATUS' ada di spreadsheet.");
+  }
+  
+  // Mengambil semua data dari "SO RAW" (tanpa header)
+  const soRawData = soRawSheet.getDataRange().getValues();
+  
+  // Mengambil semua data dari "LANE STATUS" (dengan header)
+  const laneStatusData = laneStatusSheet.getDataRange().getValues();
+  
+  // Mendapatkan header dari "LANE STATUS" dan membuat mapping indeks kolom
+  const laneStatusHeader = laneStatusData[0].map(header => header.toString().trim().toLowerCase());
+  const laneIdxStatus = laneStatusHeader.indexOf("lane");
+  const quantityIdxStatus = laneStatusHeader.indexOf("quantity");
+  const midIdxStatus = laneStatusHeader.indexOf("mid");
+  
+  if (laneIdxStatus === -1 || quantityIdxStatus === -1 || midIdxStatus === -1) {
+    throw new Error("Pastikan sheet 'LANE STATUS' memiliki kolom 'Lane', 'Quantity', dan 'MID'.");
+  }
+  
+  // Membuat mapping lane di "LANE STATUS" untuk akses cepat
+  const laneStatusMap = {};
+  for (let i = 1; i < laneStatusData.length; i++) {
+    const laneName = laneStatusData[i][laneIdxStatus].toString().trim();
+    if (laneName) {
+      laneStatusMap[laneName] = i; // Menyimpan indeks baris (0-based)
+    }
+  }
+  
+  // Mendapatkan tanggal hari ini dalam format "dd/MM/yyyy"
+  const now = new Date();
+  const timeZone = ss.getSpreadsheetTimeZone();
+  const todayStr = Utilities.formatDate(now, timeZone, "dd/MM/yyyy");
+  
+  // Menentukan sesi berdasarkan pilihan pengguna
+  let session = selectedSession;
+  if (!session) {
+    const currentHour = now.getHours();
+    if (currentHour >= 1 && currentHour < 13) {
+      session = 'morning'; // Session 1: 01:00 AM - 12:59 PM
+    } else if (currentHour >= 13 && currentHour < 24) {
+      session = 'afternoon'; // Session 2: 01:00 PM - 11:59 PM
+    } else {
+      return "Skrip hanya berjalan antara 01:00 AM hingga 11:59 PM.";
+    }
+  }
+  
+  // Mendapatkan waktu batasan sesi
+  let sessionStartHour, sessionEndHour;
+  if (session === 'morning') {
+    sessionStartHour = 1;
+    sessionEndHour = 13; // 12:59 PM
+  } else if (session === 'afternoon') {
+    sessionStartHour = 13;
+    sessionEndHour = 24; // 11:59 PM
+  } else {
+    throw new Error("Sesi yang dipilih tidak valid. Pilih 'morning' atau 'afternoon'.");
+  }
+  
+  // Membuat mapping dari nama lane di "SO RAW" ke nama lane di "LANE STATUS"
+  const laneMapping = getLaneMapping();
+  
+  // Menyiapkan array untuk perubahan Quantity dan MID
+  const quantityUpdates = [];
+  const midUpdates = [];
+  
+  // Mengiterasi data dari "SO RAW"
+  for (let i = 0; i < soRawData.length; i++) { // Mulai dari 0 karena tidak ada header
+    const row = soRawData[i];
+    const soRawLane = row[0].toString().trim(); // Kolom A: Lane
+    const soRawMID = row[2].toString().trim();  // Kolom C: MID
+    const soRawQuantity = row[3];              // Kolom D: Quantity
+    const soRawDate = row[5];                  // Kolom F: Date
+    
+    // Mengubah nama lane ke format "LANE STATUS" menggunakan mapping
+    const mappedLane = laneMapping[soRawLane];
+    if (!mappedLane) {
+      Logger.log(`Tidak ada mapping untuk lane: ${soRawLane}`);
+      continue; // Lewati jika tidak ada mapping
+    }
+    
+    // Memeriksa apakah lane ada di "LANE STATUS"
+    const laneStatusRow = laneStatusMap[mappedLane];
+    if (laneStatusRow === undefined) {
+      Logger.log(`Tidak ditemukan lane di 'LANE STATUS' untuk: ${mappedLane}`);
+      continue; // Lewati jika lane tidak ditemukan
+    }
+    
+    // Memeriksa tanggal dan sesi dari "SO RAW"
+    const soRawDateObj = new Date(soRawDate);
+    if (isNaN(soRawDateObj)) {
+      Logger.log(`Tanggal tidak valid untuk lane: ${soRawLane} pada baris ${i + 1}`);
+      continue; // Lewati jika tanggal tidak valid
+    }
+    
+    const soRawDateStr = Utilities.formatDate(soRawDateObj, timeZone, "dd/MM/yyyy");
+    const soRawHour = soRawDateObj.getHours();
+    
+    // Tentukan sesi dari data
+    let dataSession;
+    if (soRawHour >= 1 && soRawHour < 13) {
+      dataSession = 'morning';
+    } else if (soRawHour >= 13 && soRawHour < 24) {
+      dataSession = 'afternoon';
+    } else {
+      dataSession = 'unknown';
+    }
+    
+    // Hanya proses data yang sesuai dengan sesi yang dipilih dan tanggal hari ini
+    if (soRawDateStr === todayStr && dataSession === session) {
+      // Menyimpan perubahan
+      quantityUpdates.push({ row: laneStatusRow + 1, value: soRawQuantity });
+      midUpdates.push({ row: laneStatusRow + 1, value: soRawMID });
+    }
+  }
+  
+  // Melakukan batch update untuk Quantity
+  if (quantityUpdates.length > 0) {
+    const quantityRange = laneStatusSheet.getRange(2, quantityIdxStatus + 1, laneStatusData.length - 1, 1);
+    const quantityValues = quantityRange.getValues();
+    quantityUpdates.forEach(update => {
+      quantityValues[update.row - 2][0] = update.value;
+    });
+    quantityRange.setValues(quantityValues);
+  }
+  
+  // Melakukan batch update untuk MID
+  if (midUpdates.length > 0) {
+    const midRange = laneStatusSheet.getRange(2, midIdxStatus + 1, laneStatusData.length - 1, 1);
+    const midValues = midRange.getValues();
+    midUpdates.forEach(update => {
+      midValues[update.row - 2][0] = update.value;
+    });
+    midRange.setValues(midValues);
+  }
+  
+  // Menyimpan waktu sinkronisasi terakhir ke PropertiesService
+  const properties = PropertiesService.getScriptProperties();
+  const lastSyncTime = Utilities.formatDate(now, timeZone, "dd/MM/yyyy HH:mm:ss");
+  properties.setProperty('LAST_SYNC_TIME', lastSyncTime);
+  
+  return `Sinkronisasi selesai pada sesi ${session}. ${quantityUpdates.length} Lane diperbarui.`;
+}
+
+/**
+ * Fungsi untuk mengambil waktu sinkronisasi terakhir
+ * @returns {string} Waktu sinkronisasi terakhir
+ */
+function getLastSyncTime() {
+  const properties = PropertiesService.getScriptProperties();
+  const lastSyncTime = properties.getProperty('LAST_SYNC_TIME');
+  return lastSyncTime ? lastSyncTime : "Belum pernah disinkronkan.";
+}
+
+/**
+ * Fungsi untuk membuat mapping lane dari "SO RAW" ke "LANE STATUS"
+ */
+function getLaneMapping() {
+  return {
+    "LANE 1ECERAN": "1E",
+    "LANE 2ECERAN": "2E",
+    "LANE 3ECERAN": "3E",
+    "LANE 4ECERAN": "4E",
+    "LANE 5ECERAN": "5E",
+    "LANE 6ECERAN": "6E",
+    "LANE 7ECERAN": "7E",
+    "LANE 8ECERAN": "8E",
+    "LANE 9ECERAN": "9E",
+    "LANE 10ECERAN": "10E",
+    "LANE 11ECERAN": "11E",
+    "LANE 12ECERAN": "12E",
+    "LANE 13ECERAN": "13E",
+    "LANE 14ECERAN": "14E",
+    "LANE 15ECERAN": "15E",
+    "LANE 1B": "1B",
+    "LANE 2B": "2B",
+    "LANE 3B": "3B",
+    "LANE 4B": "4B",
+    "LANE 5B": "5B",
+    "LANE 6B": "6B",
+    "LANE 7B": "7B",
+    "LANE 8B": "8B",
+    "LANE 9B": "9B",
+    "LANE 10B": "10B",
+    "LANE 11B": "11B",
+    "LANE 12B": "12B",
+    "LANE 13B": "13B",
+    "LANE 14B": "14B",
+    "LANE 15B": "15B",
+    "LANE 16B": "16B",
+    "LANE 17B": "17B",
+    "LANE 18B": "18B",
+    "LANE 19B": "19B",
+    "LANE 20B": "20B",
+    "LANE 21B": "21B",
+    "LANE 22B": "22B",
+    "LANE 23B": "23B",
+    "LANE 24B": "24B",
+    "LANE 25B": "25B",
+    "LANE 26B": "26B",
+    "LANE 1A": "1A",
+    "LANE 2A": "2A",
+    "LANE 3A": "3A",
+    "LANE 4A": "4A",
+    "LANE 5A": "5A",
+    "LANE 6A": "6A",
+    "LANE 7A": "7A",
+    "LANE 8A": "8A",
+    "LANE 9A": "9A",
+    "LANE 10A": "10A",
+    "LANE 11A": "11A",
+    "LANE 12A": "12A",
+    "LANE 13A": "13A",
+    "LANE 14A": "14A",
+    "LANE 15A": "15A",
+    "LANE 16A": "16A",
+    "LANE 17A": "17A",
+    "LANE 18A": "18A",
+    "LANE 19A": "19A",
+    "LANE 20A": "20A",
+    "LANE 21A": "21A",
+    "LANE 22A": "22A",
+    "LANE 23A": "23A",
+    "LANE 24A": "24A",
+    "LANE 25A": "25A",
+    "LANE 26A": "26A"
+    // Tambahkan mapping lainnya jika diperlukan
+  };
+}
+
+/**
+ * Fungsi untuk sinkronisasi sesi pagi
+ */
+function synchronizeMorning() {
+  synchronizeData('morning');
+}
+
+/**
+ * Fungsi untuk sinkronisasi sesi sore
+ */
+function synchronizeAfternoon() {
+  synchronizeData('afternoon');
 }
