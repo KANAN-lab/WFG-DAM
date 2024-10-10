@@ -55,7 +55,7 @@ function onScanSuccess(decodedText, decodedResult) {
     // Check if the scanned code exists in the productMapping
     if (productMapping.hasOwnProperty(decodedText)) {
         // Assign the scanned code to the first available MID field
-        for (let i = 1; i <= 25; i++) {
+        for (let i = 1; i <= 26; i++) {
             const midField = document.getElementById(`mid${i}`);
             const nameField = document.getElementById(`name${i}`);
             const quantityField = document.getElementById(`quantity${i}`);
