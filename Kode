@@ -20,7 +20,7 @@ function redirectToMainPage() {
 
 function LoadchartapexSankey() {
   // Buka spreadsheet berdasarkan ID
-  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
+  const ss = SpreadsheetApp.openById('Isi dengan id anda');
   const sheet = ss.getSheetByName('LANE STATUS');
 
   // Ambil data dari sheet
@@ -38,7 +38,7 @@ function LoadchartapexSankey() {
  */
 function processForm(formData) {
   try {
-    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'; // Ganti dengan ID Sheet Anda
+    const sheetId = 'Isi dengan id anda'; // Ganti dengan ID Sheet Anda
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     let sheet = ss.getSheetByName(sheetName);
@@ -198,7 +198,7 @@ function processForm(formData) {
  */
 function getAllData() {
   try {
-    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+    const sheetId = 'Isi dengan id anda';
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     const sheet = ss.getSheetByName(sheetName);
@@ -265,7 +265,7 @@ function getAllData() {
  */
 function getFilteredData(shift, mesin, size) {
   try {
-    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+    const sheetId = 'Isi dengan id anda';
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     const sheet = ss.getSheetByName(sheetName);
@@ -371,7 +371,7 @@ function include(filename) {
 }
 
 function submitDataSO(data) {
-  const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+  const sheetId = 'Isi dengan id anda';
   const sheetName = 'SO RAW';
   const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
   
@@ -380,7 +380,7 @@ function submitDataSO(data) {
 }
 
 function getDataByDateZoneAndSession(date, zoneFilter, sessionFilter) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues(); // Ambil semua data dari sheet
   
   const inputDate = new Date(date); // Konversi input tanggal dari pengguna
@@ -426,7 +426,7 @@ function getDataByDateZoneAndSession(date, zoneFilter, sessionFilter) {
 }
 
 function updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQuantity) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   // Cari row berdasarkan seluruh isi unique code (kolom ZONE)
@@ -441,7 +441,7 @@ function updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQuantity) {
 }
 
 function getDataSO() {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues(); // Fetch all data from the sheet
   
   const currentDate = new Date();
@@ -513,7 +513,7 @@ function getConv(productName) {
 }
 
 function submitDataWithRemarksAndSession(data, remarks, dateWithTime, session) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName("SO FINAL");
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName("SO FINAL");
   const existingData = sheet.getRange('A:B').getValues(); // Fetch date and session columns
 
   // Extract the date from dateWithTime (format: DD/MM/YYYY HH:MM:SS)
@@ -562,7 +562,7 @@ function submitDataWithRemarksAndSession(data, remarks, dateWithTime, session) {
 }
 
 function getDiffSoSapByDate(selectedDate) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
   const data = sheet.getDataRange().getValues(); // Get all data from the sheet
 
   const result = {};
@@ -590,7 +590,7 @@ function getDiffSoSapByDate(selectedDate) {
 }
 
 function getDataSOWithRemarksByDate(selectedDate, session) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
   const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data
 
   const filteredData = [];
@@ -625,7 +625,7 @@ function getDataSOWithRemarksByDate(selectedDate, session) {
 }
 
 function getDiffPreviousByDate(selectedDate) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
   const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data dari A hingga F (kolom ke-6)
   
   const diffPreviousData = [];
@@ -749,7 +749,7 @@ function getSheetData() {
 }
 
 function getDataByDateAndSession(selectedDate, session) {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   const inputDate = new Date(selectedDate);
@@ -797,7 +797,7 @@ function processLogin(username, password) {
 
 
 function getZoneData() {
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   const zones = [];
@@ -862,7 +862,7 @@ function generateUniqueId(zone) {
  * @returns {Object} - Objek dengan key adalah Lane ID dan value adalah jumlah pallet, MID, dan setting saat ini.
  */
 function getLaneStatus(zone) {
-  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Ganti dengan ID Spreadsheet Anda
   const sheet = ss.getSheetByName('LANE STATUS'); // Ganti dengan nama sheet yang sesuai
   const data = sheet.getDataRange().getValues(); // Asumsi baris pertama adalah header
 
@@ -892,7 +892,7 @@ function getLaneStatus(zone) {
  * @returns {Object} - Respons dari backend.
  */
 function submitDataInboundRawFullPallet(data) {
-  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Ganti dengan ID Spreadsheet Anda
   const laneSheet = ss.getSheetByName('LANE STATUS'); // Sheet untuk status lane
   const logSheet = ss.getSheetByName('INBOUND RAW'); // Sheet untuk mencatat log
   const dataSheet = ss.getSheetByName('Data'); // Sheet untuk data form (opsional)
@@ -1020,7 +1020,7 @@ function unlockForm() {
  * @return {Array} An array of lane status objects.
  */
 function getLaneStatusData() {
-  const spreadsheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+  const spreadsheetId = 'Isi dengan id anda';
   const sheetName = 'LANE STATUS';
   
   // Open the spreadsheet and select the sheet
@@ -1132,7 +1132,7 @@ function getNewStockData() {
   });
 
   // Buka sheet "LANE STATUS"
-  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('LANE STATUS');
+  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('LANE STATUS');
   const data = sheet.getDataRange().getValues();
 
   // Iterasi melalui setiap baris data, mulai dari baris kedua jika ada header
@@ -1283,7 +1283,7 @@ function setInitialPassword(initialPassword) {
 /* Moving Lane Builder */
 // Function to get the data for Lane Status
 function getDataLaneStatus() {
-  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
+  const ss = SpreadsheetApp.openById('Isi dengan id anda');
   const sheet = ss.getSheetByName('LANE STATUS');
   const data = sheet.getDataRange().getValues();
 
@@ -1334,7 +1334,7 @@ const productMappings = {
 // Function to move data from Source to Target and log it to the "MOVING LOG" sheet
 function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane, transferQuantity, alasan = "") {
   try {
-    const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Replace with your Spreadsheet ID
+    const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Replace with your Spreadsheet ID
     const sheet = ss.getSheetByName('LANE STATUS'); // Replace with your LANE STATUS sheet
     if (!sheet) {
       throw new Error('Sheet "LANE STATUS" not found.');
@@ -1573,7 +1573,7 @@ function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane, tra
 
 /* Builder10 */
 // Konstanta untuk Spreadsheet
-const SPREADSHEET_ID = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+const SPREADSHEET_ID = 'Isi dengan id anda';
 const SHEET_NAME = 'LANE STATUS';
 const PICKING_LIST_SHEET_NAME = 'PICKING LIST'; // Nama baru sheet Picking List
 
@@ -1864,7 +1864,7 @@ function getMainPage() {
  * @param {string} selectedSession - Sesi yang dipilih oleh pengguna ('morning' atau 'afternoon')
  */
 function synchronizeData(selectedSession) {
-  const ss = SpreadsheetApp.openById("1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8"); // ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById("Isi dengan id anda"); // ID Spreadsheet Anda
   const soRawSheet = ss.getSheetByName("SO RAW");
   const laneStatusSheet = ss.getSheetByName("LANE STATUS");
   
