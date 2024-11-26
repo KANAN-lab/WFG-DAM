@@ -1,6 +1,6 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('Index').evaluate()
-  //return HtmlService.createTemplateFromFile('Builder10').evaluate()
+  //return HtmlService.createTemplateFromFile('HistoryOutbound').evaluate()
     .addMetaTag('viewport', 'width=device-width , initial-scale=1')
     //.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     .setTitle('WFG');
@@ -14,13 +14,16 @@ function loadPage(page) {
 
 // Fungsi untuk mengarahkan ke halaman utama (Main Page)
 function redirectToMainPage() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+    return HtmlService.createTemplateFromFile('Index').evaluate()
+    //return HtmlService.createTemplateFromFile('Builder4').evaluate()
+    .addMetaTag('viewport', 'width=device-width , initial-scale=1')
+    //.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     .setTitle('WFG');
 }
 
 function LoadchartapexSankey() {
   // Buka spreadsheet berdasarkan ID
-  const ss = SpreadsheetApp.openById('Isi dengan id anda');
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
   const sheet = ss.getSheetByName('LANE STATUS');
 
   // Ambil data dari sheet
@@ -38,7 +41,7 @@ function LoadchartapexSankey() {
  */
 function processForm(formData) {
   try {
-    const sheetId = 'Isi dengan id anda'; // Ganti dengan ID Sheet Anda
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'; // Ganti dengan ID Sheet Anda
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     let sheet = ss.getSheetByName(sheetName);
@@ -198,7 +201,7 @@ function processForm(formData) {
  */
 function getAllData() {
   try {
-    const sheetId = 'Isi dengan id anda';
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     const sheet = ss.getSheetByName(sheetName);
@@ -265,7 +268,7 @@ function getAllData() {
  */
 function getFilteredData(shift, mesin, size) {
   try {
-    const sheetId = 'Isi dengan id anda';
+    const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
     const sheetName = 'Database';
     const ss = SpreadsheetApp.openById(sheetId);
     const sheet = ss.getSheetByName(sheetName);
@@ -371,7 +374,7 @@ function include(filename) {
 }
 
 function submitDataSO(data) {
-  const sheetId = 'Isi dengan id anda';
+  const sheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
   const sheetName = 'SO RAW';
   const sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
   
@@ -380,7 +383,7 @@ function submitDataSO(data) {
 }
 
 function getDataByDateZoneAndSession(date, zoneFilter, sessionFilter) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues(); // Ambil semua data dari sheet
   
   const inputDate = new Date(date); // Konversi input tanggal dari pengguna
@@ -426,7 +429,7 @@ function getDataByDateZoneAndSession(date, zoneFilter, sessionFilter) {
 }
 
 function updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQuantity) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   // Cari row berdasarkan seluruh isi unique code (kolom ZONE)
@@ -441,7 +444,7 @@ function updateQuantityInSpreadsheetByUniqueCode(uniqueCode, newQuantity) {
 }
 
 function getDataSO() {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues(); // Fetch all data from the sheet
   
   const currentDate = new Date();
@@ -513,7 +516,7 @@ function getConv(productName) {
 }
 
 function submitDataWithRemarksAndSession(data, remarks, dateWithTime, session) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName("SO FINAL");
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName("SO FINAL");
   const existingData = sheet.getRange('A:B').getValues(); // Fetch date and session columns
 
   // Extract the date from dateWithTime (format: DD/MM/YYYY HH:MM:SS)
@@ -562,7 +565,7 @@ function submitDataWithRemarksAndSession(data, remarks, dateWithTime, session) {
 }
 
 function getDiffSoSapByDate(selectedDate) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
   const data = sheet.getDataRange().getValues(); // Get all data from the sheet
 
   const result = {};
@@ -590,7 +593,7 @@ function getDiffSoSapByDate(selectedDate) {
 }
 
 function getDataSOWithRemarksByDate(selectedDate, session) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
   const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data
 
   const filteredData = [];
@@ -625,7 +628,7 @@ function getDataSOWithRemarksByDate(selectedDate, session) {
 }
 
 function getDiffPreviousByDate(selectedDate) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO FINAL');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO FINAL');
   const dataRange = sheet.getRange(1, 1, sheet.getLastRow(), 6).getValues(); // Mengambil semua data dari A hingga F (kolom ke-6)
   
   const diffPreviousData = [];
@@ -749,7 +752,7 @@ function getSheetData() {
 }
 
 function getDataByDateAndSession(selectedDate, session) {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   const inputDate = new Date(selectedDate);
@@ -797,7 +800,7 @@ function processLogin(username, password) {
 
 
 function getZoneData() {
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('SO RAW');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('SO RAW');
   const data = sheet.getDataRange().getValues();
   
   const zones = [];
@@ -862,7 +865,7 @@ function generateUniqueId(zone) {
  * @returns {Object} - Objek dengan key adalah Lane ID dan value adalah jumlah pallet, MID, dan setting saat ini.
  */
 function getLaneStatus(zone) {
-  const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Ganti dengan ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
   const sheet = ss.getSheetByName('LANE STATUS'); // Ganti dengan nama sheet yang sesuai
   const data = sheet.getDataRange().getValues(); // Asumsi baris pertama adalah header
 
@@ -892,7 +895,7 @@ function getLaneStatus(zone) {
  * @returns {Object} - Respons dari backend.
  */
 function submitDataInboundRawFullPallet(data) {
-  const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Ganti dengan ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Ganti dengan ID Spreadsheet Anda
   const laneSheet = ss.getSheetByName('LANE STATUS'); // Sheet untuk status lane
   const logSheet = ss.getSheetByName('INBOUND RAW'); // Sheet untuk mencatat log
   const dataSheet = ss.getSheetByName('Data'); // Sheet untuk data form (opsional)
@@ -1020,7 +1023,7 @@ function unlockForm() {
  * @return {Array} An array of lane status objects.
  */
 function getLaneStatusData() {
-  const spreadsheetId = 'Isi dengan id anda';
+  const spreadsheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
   const sheetName = 'LANE STATUS';
   
   // Open the spreadsheet and select the sheet
@@ -1117,7 +1120,7 @@ function getNewStockData() {
     "M11": { mid: "1150046", converter: 56 },
     "M1": { mid: "1050046", converter: 64 },
     "M32": { mid: "50050", converter: 32 },
-    "XL11": { mid: "1150056", converter: 48 },
+    "XL11": { mid: "1150056", converter: 42 },
     "XL1": { mid: "1050056", converter: 49 },
     "XL26": { mid: "50060", converter: 32 },
     "XL7": { mid: "50057", converter: 45 } // Diperbarui dari 9 menjadi 45
@@ -1132,14 +1135,14 @@ function getNewStockData() {
   });
 
   // Buka sheet "LANE STATUS"
-  const sheet = SpreadsheetApp.openById('Isi dengan id anda').getSheetByName('LANE STATUS');
+  const sheet = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8').getSheetByName('LANE STATUS');
   const data = sheet.getDataRange().getValues();
 
   // Iterasi melalui setiap baris data, mulai dari baris kedua jika ada header
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     
-    const zona = row[1] ? row[1].toString().trim().toUpperCase() : ''; // Kolom B: Zona
+    const zona = row[1] ? row[1].toString().trim().toUpperCase() : ''; // Kolom B: ZonaproductMappings
     const productName = row[3] ? row[3].toString().trim() : ''; // Kolom D: MID (Nama Produk)
     const quantity = parseInt(row[2], 10) || 0; // Kolom C: Quantity
 
@@ -1283,7 +1286,7 @@ function setInitialPassword(initialPassword) {
 /* Moving Lane Builder */
 // Function to get the data for Lane Status
 function getDataLaneStatus() {
-  const ss = SpreadsheetApp.openById('Isi dengan id anda');
+  const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8');
   const sheet = ss.getSheetByName('LANE STATUS');
   const data = sheet.getDataRange().getValues();
 
@@ -1334,7 +1337,7 @@ const productMappings = {
 // Function to move data from Source to Target and log it to the "MOVING LOG" sheet
 function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane, transferQuantity, alasan = "") {
   try {
-    const ss = SpreadsheetApp.openById('Isi dengan id anda'); // Replace with your Spreadsheet ID
+    const ss = SpreadsheetApp.openById('1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'); // Replace with your Spreadsheet ID
     const sheet = ss.getSheetByName('LANE STATUS'); // Replace with your LANE STATUS sheet
     if (!sheet) {
       throw new Error('Sheet "LANE STATUS" not found.');
@@ -1571,292 +1574,6 @@ function moveDataWithLogging(sourceZona, sourceLane, targetZona, targetLane, tra
 
 
 
-/* Builder10 */
-// Konstanta untuk Spreadsheet
-const SPREADSHEET_ID = 'Isi dengan id anda';
-const SHEET_NAME = 'LANE STATUS';
-const PICKING_LIST_SHEET_NAME = 'PICKING LIST'; // Nama baru sheet Picking List
-
-/**
- * Fungsi untuk mendapatkan indeks kolom dengan ignore case dan trim
- */
-function getColumnIndex(headers, columnName) {
-  for (let i = 0; i < headers.length; i++) {
-    if (headers[i].toString().trim().toLowerCase() === columnName.toLowerCase()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-/**
- * Fungsi utama untuk memproses outbound menggunakan FIFO dan membuat PICKING LIST
- * Dipanggil dari frontend
- * @param {Array} outboundOrders - Array objek {mid, lane, quantity}
- * @returns {Object} Result object dengan status dan pickingList atau error
- */
-function processOutboundFIFO(outboundOrders) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  
-  // Ambil semua data dari sheet
-  const dataRange = sheet.getDataRange();
-  const data = dataRange.getValues();
-  
-  // Asumsikan baris pertama adalah header
-  const headers = data[0];
-  
-  const laneIndex = getColumnIndex(headers, 'Lane');
-  const zonaIndex = getColumnIndex(headers, 'Zona');
-  const quantityIndex = getColumnIndex(headers, 'Quantity');
-  const midIndex = getColumnIndex(headers, 'MID');
-  const dateIndex = getColumnIndex(headers, 'Date');
-  
-  // Log untuk debugging
-  Logger.log('Lane Index: ' + laneIndex);
-  Logger.log('Zona Index: ' + zonaIndex);
-  Logger.log('Quantity Index: ' + quantityIndex);
-  Logger.log('MID Index: ' + midIndex);
-  Logger.log('Date Index: ' + dateIndex);
-  
-  if (laneIndex === -1 || zonaIndex === -1 || quantityIndex === -1 || midIndex === -1 || dateIndex === -1) {
-    throw new Error('Pastikan sheet memiliki kolom "Lane", "Zona", "Quantity", "MID", dan "Date".');
-  }
-  
-  const pickingList = [];
-  const insufficientItems = [];
-  const midsToClear = []; // Menyimpan nomor baris yang MID-nya akan dihapus
-  
-  outboundOrders.forEach(order => {
-    const { mid, lane, quantity: orderQuantity } = order;
-    let remainingQuantity = orderQuantity;
-    
-    // Temukan semua baris dengan MID dan Lane yang dipilih, Quantity >0
-    const filteredItems = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane && row[quantityIndex] > 0)
-                              .sort((a, b) => {
-                                const dateA = a[dateIndex] ? new Date(a[dateIndex]) : new Date('9999-12-31');
-                                const dateB = b[dateIndex] ? new Date(b[dateIndex]) : new Date('9999-12-31');
-                                return dateA - dateB;
-                              });
-    
-    if (filteredItems.length === 0) {
-      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
-      return;
-    }
-    
-    filteredItems.forEach(row => {
-      if (remainingQuantity <= 0) return;
-      
-      const availableQuantity = row[quantityIndex];
-      const deductQuantity = Math.min(availableQuantity, remainingQuantity);
-      
-      // Update Quantity di sheet
-      const rowNumber = data.indexOf(row) + 1;
-      const newQuantity = availableQuantity - deductQuantity;
-      sheet.getRange(rowNumber, quantityIndex + 1).setValue(newQuantity);
-      
-      // Tambahkan ke PICKING LIST
-      pickingList.push({
-        lane: row[laneIndex],
-        zona: row[zonaIndex],
-        mid: mid,
-        quantity: deductQuantity,
-        date: row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A'
-      });
-      
-      remainingQuantity -= deductQuantity;
-      
-      // Jika Quantity sudah nol, tandai baris untuk menghapus MID
-      if (newQuantity === 0) {
-        midsToClear.push(rowNumber);
-      }
-    });
-    
-    if (remainingQuantity > 0) {
-      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
-    }
-  });
-  
-  // Tulis PICKING LIST ke sheet baru atau sheet yang sama
-  let pickingSheet = ss.getSheetByName(PICKING_LIST_SHEET_NAME);
-  if (!pickingSheet) {
-    pickingSheet = ss.insertSheet(PICKING_LIST_SHEET_NAME);
-    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
-  } else {
-    pickingSheet.clearContents();
-    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
-  }
-  
-  pickingList.forEach(item => {
-    pickingSheet.appendRow([item.lane, item.zona, item.mid, item.quantity, item.date]);
-  });
-  
-  // Hapus data MID pada baris yang Quantity-nya nol
-  if (midsToClear.length > 0) {
-    midsToClear.forEach(rowNumber => {
-      sheet.getRange(rowNumber, midIndex + 1).setValue(''); // Menghapus nilai MID
-    });
-  }
-  
-  return {
-    success: true,
-    pickingList: pickingList,
-    insufficientItems: insufficientItems
-  };
-}
-
-/**
- * Fungsi untuk mengambil daftar unik MID dari spreadsheet
- * Dipanggil dari frontend
- * @returns {Array} Array unik MID
- */
-function getMIDs() {
-  const cache = CacheService.getScriptCache();
-  const cachedMIDs = cache.get('uniqueMIDs');
-  
-  if (cachedMIDs) {
-    return JSON.parse(cachedMIDs);
-  }
-  
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  const dataRange = sheet.getDataRange();
-  const data = dataRange.getValues();
-  
-  // Asumsikan baris pertama adalah header
-  const headers = data[0];
-  
-  const midIndex = getColumnIndex(headers, 'MID');
-  
-  // Log untuk debugging
-  Logger.log('MID Index: ' + midIndex);
-  
-  if (midIndex === -1) {
-    throw new Error('Pastikan sheet memiliki kolom "MID".');
-  }
-  
-  const mids = data.slice(1).map(row => row[midIndex]).filter(mid => mid && mid.toString().trim() !== '');
-  const uniqueMIDs = [...new Set(mids)];
-  
-  // Cache the unique MIDs for 10 minutes
-  cache.put('uniqueMIDs', JSON.stringify(uniqueMIDs), 600);
-  
-  return uniqueMIDs;
-}
-
-/**
- * Fungsi untuk mengambil daftar unik lanes untuk MID yang diberikan, diurutkan berdasarkan FIFO
- * Dipanggil dari frontend
- * @param {String} mid - MID yang dipilih
- * @returns {Array} Array objek lane dengan tanggal yang tersedia untuk MID tersebut, diurutkan berdasarkan FIFO
- */
-function getLanesForMID(mid) {
-  const cache = CacheService.getScriptCache();
-  const cacheKey = `lanesForMID_${mid}`;
-  const cachedLanes = cache.get(cacheKey);
-  
-  if (cachedLanes) {
-    return JSON.parse(cachedLanes);
-  }
-  
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  const dataRange = sheet.getDataRange();
-  const data = dataRange.getValues();
-  
-  // Asumsikan baris pertama adalah header
-  const headers = data[0];
-  
-  const laneIndex = getColumnIndex(headers, 'Lane');
-  const midIndex = getColumnIndex(headers, 'MID');
-  const quantityIndex = getColumnIndex(headers, 'Quantity');
-  const dateIndex = getColumnIndex(headers, 'Date');
-  
-  if (laneIndex === -1 || midIndex === -1 || dateIndex === -1 || quantityIndex === -1) {
-    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", "Quantity", dan "Date".');
-  }
-  
-  // Filter rows dengan MID dan Quantity >0
-  const filteredRows = data.slice(1).filter(row => row[midIndex] === mid && row[quantityIndex] > 0);
-  
-  // Sort berdasarkan Date ascending (FIFO)
-  filteredRows.sort((a, b) => {
-    const dateA = rowHasDate(a, dateIndex) ? new Date(a[dateIndex]) : new Date('9999-12-31');
-    const dateB = rowHasDate(b, dateIndex) ? new Date(b[dateIndex]) : new Date('9999-12-31');
-    return dateA - dateB;
-  });
-  
-  // Membuat objek untuk menyimpan Lane dan tanggal pertama kali muncul (FIFO)
-  const laneDateMap = {};
-  filteredRows.forEach(row => {
-    const lane = row[laneIndex];
-    const date = row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A';
-    if (!laneDateMap[lane]) {
-      laneDateMap[lane] = date;
-    }
-  });
-  
-  // Extract unique lanes dengan tanggal
-  const lanesWithDates = Object.keys(laneDateMap).map(lane => ({
-    lane: lane,
-    date: laneDateMap[lane]
-  }));
-  
-  // Cache the lanes for this MID for 10 minutes
-  cache.put(cacheKey, JSON.stringify(lanesWithDates), 600);
-  
-  return lanesWithDates;
-}
-
-/**
- * Fungsi untuk mengambil Quantity yang tersedia untuk MID dan Lane tertentu
- * Dipanggil dari frontend
- * @param {String} mid - MID yang dipilih
- * @param {String} lane - Lane yang dipilih
- * @returns {Number} Quantity yang tersedia
- */
-function getAvailableQuantity(mid, lane) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  const dataRange = sheet.getDataRange();
-  const data = dataRange.getValues();
-  
-  // Asumsikan baris pertama adalah header
-  const headers = data[0];
-  
-  const laneIndex = getColumnIndex(headers, 'Lane');
-  const midIndex = getColumnIndex(headers, 'MID');
-  const quantityIndex = getColumnIndex(headers, 'Quantity');
-  
-  if (laneIndex === -1 || midIndex === -1 || quantityIndex === -1) {
-    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", dan "Quantity".');
-  }
-  
-  // Cari baris yang sesuai dengan MID dan Lane
-  const matchingRows = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane);
-  
-  // Jumlahkan Quantity yang tersedia
-  const totalAvailable = matchingRows.reduce((acc, row) => acc + row[quantityIndex], 0);
-  
-  return totalAvailable;
-}
-
-/**
- * Helper function untuk memeriksa apakah baris memiliki tanggal
- */
-function rowHasDate(row, dateIndex) {
-  return row[dateIndex] && row[dateIndex].toString().trim() !== '';
-}
-
-/**
- * Fungsi untuk mengembalikan halaman HTML utama
- */
-function getMainPage() {
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Outbound FMCG')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
 
 /* Builder SYNC */
 /**
@@ -1864,7 +1581,7 @@ function getMainPage() {
  * @param {string} selectedSession - Sesi yang dipilih oleh pengguna ('morning' atau 'afternoon')
  */
 function synchronizeData(selectedSession) {
-  const ss = SpreadsheetApp.openById("Isi dengan id anda"); // ID Spreadsheet Anda
+  const ss = SpreadsheetApp.openById("1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8"); // ID Spreadsheet Anda
   const soRawSheet = ss.getSheetByName("SO RAW");
   const laneStatusSheet = ss.getSheetByName("LANE STATUS");
   
@@ -1938,7 +1655,7 @@ function synchronizeData(selectedSession) {
   for (let i = 0; i < soRawData.length; i++) { // Mulai dari 0 karena tidak ada header
     const row = soRawData[i];
     const soRawLane = row[0].toString().trim(); // Kolom A: Lane
-    const soRawMID = row[2].toString().trim();  // Kolom C: MID
+    let soRawMID = row[2].toString().trim();  // Kolom C: MID
     const soRawQuantity = row[3];              // Kolom D: Quantity
     const soRawDate = row[5];                  // Kolom F: Date
     
@@ -1978,9 +1695,22 @@ function synchronizeData(selectedSession) {
     
     // Hanya proses data yang sesuai dengan sesi yang dipilih dan tanggal hari ini
     if (soRawDateStr === todayStr && dataSession === session) {
-      // Menyimpan perubahan
+      // Pengecekan nilai MID
+      if (soRawMID === "Lane Kosong") {
+        soRawMID = ''; // Atau bisa menggunakan null atau undefined jika diinginkan
+      }
+      
+      // Menyimpan perubahan Quantity
       quantityUpdates.push({ row: laneStatusRow + 1, value: soRawQuantity });
-      midUpdates.push({ row: laneStatusRow + 1, value: soRawMID });
+      
+      // Menyimpan perubahan MID jika tidak kosong
+      // Jika Anda memilih untuk tidak menulis nilai MID sama sekali saat "Lane Kosong", Anda bisa menambahkan kondisi berikut:
+      if (soRawMID !== '') {
+        midUpdates.push({ row: laneStatusRow + 1, value: soRawMID });
+      } else {
+        // Jika ingin menghapus nilai MID di sheet "LANE STATUS" saat "Lane Kosong"
+        midUpdates.push({ row: laneStatusRow + 1, value: '' });
+      }
     }
   }
   
@@ -2111,3 +1841,1442 @@ function synchronizeMorning() {
 function synchronizeAfternoon() {
   synchronizeData('afternoon');
 }
+
+
+
+/* AUTOMATION OUTBOUND */
+
+// **Konstanta dan Mapping MID**
+const MAIN_SPREADSHEET_ID = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'; // Spreadsheet Utama
+const SECOND_SPREADSHEET_ID = '1ClW9ZK626TNGGuTXGTQE-6q4P8nCO7r2lt93QsgdxdM'; // Spreadsheet Kedua (ARIS)
+const MAIN_SHEET_NAME = 'LANE STATUS'; // Nama sheet di Spreadsheet Utama
+const SECOND_SHEET_NAME = 'DATA'; // Nama sheet di Spreadsheet Kedua
+const PICKING_LIST_SHEET_NAME = 'PICKING LIST';
+const BOOKINGS_SHEET_NAME = 'BOOKINGS';
+const OUTBOUND_SHEET_NAME = 'OUTBOUND';
+
+/**
+ * Mapping dari MID Utama ke MID Kedua dan Converter (Box per Pallet)
+ */
+const MIDMapping = { 
+  "L11": { secondMID: "1150051", converter: 56 },
+  "L1": { secondMID: "1050051", converter: 64 },
+  "L28": { secondMID: "50055", converter: 32 },
+  "L8": { secondMID: "50052", converter: 45 },
+  "M11": { secondMID: "1150046", converter: 56 },
+  "M1": { secondMID: "1050046", converter: 64 },
+  "M32": { secondMID: "50050", converter: 32 },
+  "XL11": { secondMID: "1150056", converter: 42 },
+  "XL1": { secondMID: "1050056", converter: 49 },
+  "XL26": { secondMID: "50060", converter: 32 },
+  "XL7": { secondMID: "50057", converter: 45 }
+  // Pastikan tidak ada entry untuk Lane seperti "2A"
+};
+
+/**
+ * Function to get column index with case-insensitive header
+ * @param {Array} headers - Array of header names
+ * @param {String} columnName - Name of the column to find
+ * @returns {Number} - Index of the column, or -1 if not found
+ */
+function getColumnIndex(headers, columnName) {
+  for (let i = 0; i < headers.length; i++) {
+    if (headers[i].toString().trim().toLowerCase() === columnName.toLowerCase()) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Function to generate a unique Booking ID
+ * @returns {String} - Unique Booking ID
+ */
+function generateBookingID() {
+  const timestamp = new Date().getTime();
+  const randomNum = Math.floor(Math.random() * 1000);
+  return `BK-${timestamp}-${randomNum}`;
+}
+
+/**
+ * Function to get the count of active bookings from the "BOOKINGS" sheet
+ * @returns {Number} - Count of active bookings
+ */
+function getBookingCount() {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const bookingsSheet = ss.getSheetByName(BOOKINGS_SHEET_NAME);
+  if (!bookingsSheet) {
+    return 0;
+  }
+  const data = bookingsSheet.getDataRange().getValues();
+  const headers = data[0];
+  const statusIndex = headers.findIndex(header => header.toString().trim().toLowerCase() === 'status');
+  
+  if (statusIndex === -1) {
+    throw new Error('Kolom "Status" tidak ditemukan di sheet BOOKINGS.');
+  }
+
+  // Count the number of bookings with status 'Aktif'
+  const activeBookings = data.slice(1).filter(row => row[statusIndex].toString().trim().toLowerCase() === 'aktif');
+  return activeBookings.length;
+}
+
+/**
+ * Function to get all active bookings from the "BOOKINGS" sheet
+ * @returns {Array} Array of booking objects
+ */
+function getAllActiveBookings() {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const bookingsSheet = ss.getSheetByName(BOOKINGS_SHEET_NAME);
+  if (!bookingsSheet) {
+    return [];
+  }
+  const data = bookingsSheet.getDataRange().getValues();
+  const headers = data[0];
+  const bookingHeaderMap = headers.map(header => header.toString().trim().toLowerCase());
+  const statusIndex = bookingHeaderMap.indexOf('status');
+  
+  if (statusIndex === -1) {
+    throw new Error('Kolom "Status" tidak ditemukan di sheet BOOKINGS.');
+  }
+
+  const activeBookings = data.slice(1).filter(row => row[statusIndex].toString().trim().toLowerCase() === 'aktif');
+
+  return activeBookings.map(row => {
+    let booking = {};
+    for (let i = 0; i < bookingHeaderMap.length; i++) {
+      booking[bookingHeaderMap[i]] = row[i];
+    }
+    return booking;
+  });
+}
+
+/**
+ * Function to book outbound orders
+ * @param {Array} outboundOrders - Array of objects {mid, lane}
+ * @returns {Object} Result object with status and bookedOrders
+ */
+function bookOutboundOrders(outboundOrders) {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  let bookingsSheet = ss.getSheetByName(BOOKINGS_SHEET_NAME);
+  if (!bookingsSheet) {
+    bookingsSheet = ss.insertSheet(BOOKINGS_SHEET_NAME);
+    bookingsSheet.appendRow(['Booking ID', 'MID', 'Lane', 'Zona', 'Quantity (Pallet)', 'Date', 'Status']);
+  }
+
+  const sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  const headers = data[0];
+
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const zonaIndex = getColumnIndex(headers, 'Zona');
+  const midIndex = getColumnIndex(headers, 'MID');
+  const quantityIndex = getColumnIndex(headers, 'Quantity'); // Pastikan kolom Quantity ada
+  const dateIndex = getColumnIndex(headers, 'Date');
+
+  // Validate that all necessary columns exist
+  if (laneIndex === -1 || zonaIndex === -1 || midIndex === -1 || quantityIndex === -1 || dateIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "Zona", "MID", "Quantity", dan "Date".');
+  }
+
+  // Get all active bookings
+  const bookingsData = bookingsSheet.getDataRange().getValues();
+  const bookingsHeaders = bookingsData[0];
+  const statusIndexBooking = getColumnIndex(bookingsHeaders, 'Status');
+  const laneIndexBooking = getColumnIndex(bookingsHeaders, 'Lane');
+
+  if (statusIndexBooking === -1 || laneIndexBooking === -1) {
+    throw new Error('Pastikan sheet BOOKINGS memiliki kolom "Status" dan "Lane".');
+  }
+
+  const activeBookings = bookingsData.slice(1).filter(row => row[statusIndexBooking].toString().trim().toLowerCase() === 'aktif');
+  const bookedLanes = activeBookings.map(row => row[laneIndexBooking]);
+
+  let bookedOrders = [];
+  let skippedBookings = [];
+
+  outboundOrders.forEach(order => {
+    const { mid, lane } = order;
+
+    // Check if lane is already booked
+    if (bookedLanes.includes(lane)) {
+      skippedBookings.push({
+        mid: mid,
+        lane: lane,
+        reason: 'Lane sudah dibooking.'
+      });
+      return; // Skip booking this order
+    }
+
+    // Cari converter berdasarkan MID
+    const mappingInfo = MIDMapping[mid];
+    if (!mappingInfo) {
+      skippedBookings.push({
+        mid: mid,
+        lane: lane,
+        reason: `Tidak ada converter yang didefinisikan untuk MID ${mid}.`
+      });
+      return; // Skip booking this order
+    }
+
+    // Cari baris di sheet utama yang cocok dengan MID dan Lane
+    const matchingRows = data.slice(1).filter(row => 
+      row[midIndex] === mid && 
+      row[laneIndex] === lane && 
+      Number(row[quantityIndex]) > 0
+    );
+
+    if (matchingRows.length === 0) {
+      skippedBookings.push({
+        mid: mid,
+        lane: lane,
+        reason: `Data untuk MID ${mid} di Lane ${lane} tidak tersedia atau Quantity sudah 0.`
+      });
+      return; // Skip booking this order
+    }
+
+    // Cari baris dengan tanggal paling awal (FIFO)
+    matchingRows.sort((a, b) => {
+      const dateA = rowHasDate(a, dateIndex) ? new Date(a[dateIndex]) : new Date('9999-12-31');
+      const dateB = rowHasDate(b, dateIndex) ? new Date(b[dateIndex]) : new Date('9999-12-31');
+      return dateA - dateB;
+    });
+
+    const firstMatchingRow = matchingRows[0];
+    const zona = firstMatchingRow[zonaIndex];
+    const date = firstMatchingRow[dateIndex] ? formatDate(firstMatchingRow[dateIndex]) : 'N/A';
+    const quantity = Number(firstMatchingRow[quantityIndex]);
+
+    if (quantity <= 0) {
+      skippedBookings.push({
+        mid: mid,
+        lane: lane,
+        reason: `Quantity untuk MID ${mid} di Lane ${lane} tidak tersedia atau 0.`
+      });
+      return; // Skip booking this order
+    }
+
+    // Generate unique Booking ID
+    const bookingID = generateBookingID();
+
+    // Append booking data ke BOOKINGS sheet dengan Status "Aktif"
+    bookingsSheet.appendRow([bookingID, mid, lane, zona, quantity, date, 'Aktif']);
+
+    // Tambahkan ke array bookedOrders
+    bookedOrders.push({
+      bookingID: bookingID,
+      mid: mid,
+      lane: lane,
+      zona: zona,
+      quantity: quantity, // Quantity dalam Pallet
+      date: date,
+      status: 'Aktif'
+    });
+
+    // Add the lane to bookedLanes to prevent duplicate in the same request
+    bookedLanes.push(lane);
+  });
+
+  let response = {
+    success: true,
+    bookedOrders: bookedOrders
+  };
+
+  if (skippedBookings.length > 0) {
+    response.message = 'Beberapa lane sudah dibooking dan tidak dapat diproses.';
+    response.skippedBookings = skippedBookings;
+  }
+
+  return response;
+}
+
+/**
+ * Function to release bookings and deduct from stock following FIFO based on Booking Date
+ * @returns {Object} Result object dengan status dan pickingList atau pesan error
+ */
+function releaseBookings() {
+  // Menggunakan LockService untuk mencegah akses bersamaan
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000); // Tunggu hingga lock tersedia, timeout dalam 30 detik
+  } catch (e) {
+    throw new Error('Tidak dapat mengakses server saat ini. Silakan coba lagi nanti.');
+  }
+
+  try {
+    const ssMain = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+    const bookingsSheet = ssMain.getSheetByName(BOOKINGS_SHEET_NAME);
+    if (!bookingsSheet) {
+      return {
+        success: false,
+        message: 'Tidak ada booking untuk direlease.'
+      };
+    }
+
+    const bookingsData = bookingsSheet.getDataRange().getValues();
+    const bookingsHeaders = bookingsData[0];
+    let bookings = bookingsData.slice(1);
+
+    if (bookings.length === 0) {
+      return {
+        success: false,
+        message: 'Tidak ada booking untuk direlease.'
+      };
+    }
+
+    const sheetMain = ssMain.getSheetByName(MAIN_SHEET_NAME);
+    const dataRangeMain = sheetMain.getDataRange();
+    const dataMain = dataRangeMain.getValues();
+    const headersMain = dataMain[0];
+
+    const laneIndex = getColumnIndex(headersMain, 'Lane');
+    const zonaIndex = getColumnIndex(headersMain, 'Zona');
+    const quantityIndex = getColumnIndex(headersMain, 'Quantity');
+    const midIndex = getColumnIndex(headersMain, 'MID');
+    const dateIndex = getColumnIndex(headersMain, 'Date');
+
+    const outboundSheet = ssMain.getSheetByName(OUTBOUND_SHEET_NAME);
+    if (!outboundSheet) {
+      throw new Error(`Sheet "${OUTBOUND_SHEET_NAME}" tidak ditemukan di Spreadsheet Utama.`);
+    }
+
+    const ssSecond = SpreadsheetApp.openById(SECOND_SPREADSHEET_ID);
+    const sheetSecond = ssSecond.getSheetByName(SECOND_SHEET_NAME);
+    if (!sheetSecond) {
+      return {
+        success: false,
+        message: `Sheet dengan nama "${SECOND_SHEET_NAME}" tidak ditemukan di spreadsheet kedua.`
+      };
+    }
+
+    const dataRangeSecond = sheetSecond.getDataRange();
+    const dataSecond = dataRangeSecond.getValues();
+    const headersSecond = dataSecond[0];
+
+    const dateSecondIndex = getColumnIndex(headersSecond, 'Date');
+    const midSecondIndex = getColumnIndex(headersSecond, 'MID');
+    const qtyOkSecondIndex = getColumnIndex(headersSecond, 'QTY OK');
+    const responseSecondIndex = getColumnIndex(headersSecond, 'Response');
+
+    const today = formatDate(new Date());
+    Logger.log('Today: ' + today);
+
+    let pickingList = [];
+    let insufficientItems = [];
+    let outboundEntries = []; // Menyimpan entri untuk ditambahkan ke sheet OUTBOUND
+    let rowsToDelete = []; // Menyimpan nomor baris untuk dihapus dari BOOKINGS
+
+    const bookingHeaderMap = bookingsHeaders.map(header => header.toString().trim().toLowerCase());
+    const statusIndexBooking = bookingHeaderMap.indexOf('status');
+    const bookingIDIndex = bookingHeaderMap.indexOf('booking id');
+    const quantityBookingIndex = bookingHeaderMap.indexOf('quantity (pallet)');
+    const bookingDateIndex = bookingHeaderMap.indexOf('date'); // Asumsikan ada kolom 'Date' di BOOKINGS
+
+    if (bookingIDIndex === -1 || quantityBookingIndex === -1 || bookingDateIndex === -1) {
+      throw new Error('Pastikan sheet BOOKINGS memiliki kolom "Booking ID", "Quantity (Pallet)", dan "Date".');
+    }
+
+    // ------------------- LOGIKA BARU UNTUK PRIORITAS berdasarkan "TRIAL DATA" -------------------
+
+    // 1. Dapatkan urutan secondMID dari sheet "TRIAL DATA" sesuai dengan urutan baris
+    const secondMIDOrder = [];
+    const trialDataRows = dataSecond.slice(1); // Mengabaikan header
+
+    trialDataRows.forEach(row => {
+      const secondMID = row[midSecondIndex].toString().trim();
+      if (secondMID && !secondMIDOrder.includes(secondMID)) {
+        secondMIDOrder.push(secondMID);
+      }
+    });
+
+    // 2. Buat peta prioritas untuk secondMID berdasarkan urutan di "TRIAL DATA"
+    const secondMIDPriorityMap = {};
+    secondMIDOrder.forEach((mid, index) => {
+      secondMIDPriorityMap[mid] = index + 1; // Prioritas dimulai dari 1
+    });
+
+    // 3. Tambahkan prioritas dan tanggal booking ke setiap booking, serta nomor baris asli
+    const processedBookings = bookings.map((booking, index) => {
+      const bookingMID = booking[getColumnIndex(bookingsHeaders, 'mid')];
+      const mappingInfo = MIDMapping[bookingMID];
+      let priority = Number.MAX_SAFE_INTEGER; // Prioritas rendah jika tidak ditemukan
+      if (mappingInfo) {
+        const secondMID = mappingInfo.secondMID;
+        priority = secondMIDPriorityMap[secondMID] || Number.MAX_SAFE_INTEGER;
+      }
+
+      // Tambahkan field tanggal booking untuk pengurutan
+      const bookingDateValue = booking[bookingDateIndex];
+      let bookingDate = new Date('9999-12-31'); // Tanggal default jika tidak ada
+      if (rowHasDate(booking, bookingDateIndex)) {
+        if (typeof bookingDateValue === 'string') {
+          bookingDate = parseDate(bookingDateValue);
+        } else if (bookingDateValue instanceof Date) {
+          bookingDate = bookingDateValue;
+        }
+      }
+
+      return {
+        data: booking,
+        priority: priority,
+        bookingDate: bookingDate,
+        sheetRowNumber: index + 2 // +2 karena slice dimulai dari 1 dan indeks dimulai dari 0
+      };
+    });
+
+    // 4. Urutkan bookings berdasarkan prioritas secondMID dan kemudian tanggal booking (FIFO)
+    processedBookings.sort((a, b) => {
+      if (a.priority < b.priority) return -1;
+      if (a.priority > b.priority) return 1;
+
+      // Jika prioritas sama, urutkan berdasarkan tanggal booking (FIFO)
+      if (a.bookingDate < b.bookingDate) return -1;
+      if (a.bookingDate > b.bookingDate) return 1;
+      return 0;
+    });
+
+    // ----------------------------------------------------------------------------------------------
+
+    // Membuat Map untuk melacak QTY OK yang tersedia per secondMID
+    let qtyOkAvailableMap = {};
+
+    dataSecond.slice(1).forEach((row, index) => {
+      const secondMID = row[midSecondIndex].toString().trim();
+      const date = formatDate(row[dateSecondIndex]);
+      const qtyOk = Number(row[qtyOkSecondIndex]);
+      const response = row[responseSecondIndex].toString().trim();
+
+      if (secondMID === '' || date !== today || qtyOk <= 0) {
+        return;
+      }
+
+      const match = response.match(/Released:\s*(\d+)/i);
+      let releasedTotal = 0;
+      if (match) {
+        releasedTotal = parseInt(match[1], 10);
+      }
+
+      const availableToRelease = qtyOk - releasedTotal;
+      if (availableToRelease > 0) {
+        if (!qtyOkAvailableMap[secondMID]) {
+          qtyOkAvailableMap[secondMID] = [];
+        }
+        qtyOkAvailableMap[secondMID].push({
+          rowIndex: index + 2, // +2 karena indeks dimulai dari 0 dan slice dimulai dari 1
+          availableBoxes: availableToRelease
+        });
+      }
+    });
+
+    // Pastikan bahwa setiap secondMID memiliki urutan QTY OK berdasarkan rowIndex ascending
+    for (const secondMID in qtyOkAvailableMap) {
+      qtyOkAvailableMap[secondMID].sort((a, b) => a.rowIndex - b.rowIndex);
+    }
+
+    // Iterate melalui semua bookings yang sudah diurutkan berdasarkan prioritas dan tanggal
+    for (let i = 0; i < processedBookings.length; i++) {
+      const bookingObj = processedBookings[i];
+      const bookingRow = bookingObj.data;
+      const rowNumber = bookingObj.sheetRowNumber;
+
+      const status = bookingRow[statusIndexBooking];
+      if (!status || bookingRow[statusIndexBooking].toString().trim().toLowerCase() !== 'aktif') {
+        continue;
+      }
+
+      const bookingID = bookingRow[bookingIDIndex];
+      const mid = bookingRow[getColumnIndex(bookingsHeaders, 'mid')];
+      const lane = bookingRow[getColumnIndex(bookingsHeaders, 'lane')];
+      const zona = bookingRow[getColumnIndex(bookingsHeaders, 'zona')];
+      let quantityPallet = Number(bookingRow[quantityBookingIndex]);
+
+      if (!mid || !lane) {
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid || 'Undefined',
+          lane: lane || 'Undefined',
+          shortage: 'MID atau Lane tidak didefinisikan dalam booking.'
+        });
+        continue;
+      }
+
+      const mappingInfo = MIDMapping[mid];
+      if (!mappingInfo) {
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid,
+          lane: lane,
+          shortage: 'Converter tidak ditemukan. Pastikan MID terdaftar dengan benar.'
+        });
+        continue;
+      }
+
+      const secondMID = mappingInfo.secondMID;
+      const converter = mappingInfo.converter;
+
+      // Verifikasi Pencocokan MID Sebelum Release
+      const mainMID = mid;
+      const expectedSecondMID = secondMID;
+
+      Logger.log(`Memproses Booking ID: ${bookingID}, Main MID: ${mainMID}, Second MID: ${expectedSecondMID}`);
+
+      // Cek apakah ada QTY OK yang tersedia untuk secondMID ini
+      if (!qtyOkAvailableMap[expectedSecondMID] || qtyOkAvailableMap[expectedSecondMID].length === 0) {
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid,
+          lane: lane,
+          shortage: 'Tidak ada QTY OK yang tersedia untuk MID ini.'
+        });
+        continue;
+      }
+
+      // Hitung total QTY OK yang tersedia
+      let totalBoxesAvailable = qtyOkAvailableMap[expectedSecondMID].reduce((sum, entry) => sum + entry.availableBoxes, 0);
+
+      // Total boxes yang dibutuhkan untuk booking ini
+      const totalBoxesNeeded = quantityPallet * converter;
+
+      // Tentukan jumlah boxes yang bisa direlease
+      const boxesToRelease = Math.min(totalBoxesNeeded, totalBoxesAvailable);
+
+      if (boxesToRelease <= 0) {
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid,
+          lane: lane,
+          shortage: 'QTY OK tidak mencukupi untuk mengurangi Quantity.'
+        });
+        continue;
+      }
+
+      // Mengurangi QTY di sheet utama
+      const matchingRowsMain = dataMain.slice(1)
+        .map((row, rowIndex) => ({ row, rowIndex }))
+        .filter(entry =>
+          entry.row[midIndex] === mainMID &&
+          entry.row[laneIndex] === lane &&
+          Number(entry.row[quantityIndex]) > 0
+        )
+        .sort((a, b) => {
+          const dateA = rowHasDate(a.row, dateIndex) ? parseDate(a.row[dateIndex]) : new Date('9999-12-31');
+          const dateB = rowHasDate(b.row, dateIndex) ? parseDate(b.row[dateIndex]) : new Date('9999-12-31');
+          return dateA - dateB;
+        });
+
+      if (matchingRowsMain.length === 0) {
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid,
+          lane: lane,
+          shortage: 'Tidak ada data Quantity di sheet utama untuk dikurangi.'
+        });
+        continue;
+      }
+
+      let remainingBoxesToDeduct = boxesToRelease;
+
+      for (let j = 0; j < matchingRowsMain.length; j++) {
+        const entry = matchingRowsMain[j];
+        const row = entry.row;
+        const rowIndexMain = entry.rowIndex + 2;
+
+        const availableBoxes = Number(row[quantityIndex]) * converter; // Convert pallets to boxes
+        const boxesThisRow = Math.min(availableBoxes, remainingBoxesToDeduct);
+        const newQuantityBoxes = availableBoxes - boxesThisRow;
+        const newQuantityPallets = newQuantityBoxes / converter;
+
+        const roundedNewQuantityPallets = Math.round(newQuantityPallets * 10000) / 10000;
+        sheetMain.getRange(rowIndexMain, quantityIndex + 1).setValue(roundedNewQuantityPallets);
+
+        remainingBoxesToDeduct -= boxesThisRow;
+
+        if (remainingBoxesToDeduct <= 0) {
+          break;
+        }
+      }
+
+      // Mengurangi QTY OK di sheet kedua
+      let boxesReleased = 0;
+
+      for (let k = 0; k < qtyOkAvailableMap[expectedSecondMID].length; k++) {
+        const entry = qtyOkAvailableMap[expectedSecondMID][k];
+        if (boxesReleased >= boxesToRelease) {
+          break;
+        }
+
+        const availableBoxes = entry.availableBoxes;
+        const boxesToUseNow = Math.min(availableBoxes, boxesToRelease - boxesReleased);
+        const rowIndexSecond = entry.rowIndex;
+
+        // Update 'Released' pada sheet kedua
+        const currentResponse = sheetSecond.getRange(rowIndexSecond, responseSecondIndex + 1).getValue().toString().trim();
+        let releasedTotal = 0;
+        const match = currentResponse.match(/Released:\s*(\d+)/i);
+        if (match) {
+          releasedTotal = parseInt(match[1], 10);
+        }
+        releasedTotal += boxesToUseNow;
+        sheetSecond.getRange(rowIndexSecond, responseSecondIndex + 1).setValue(`Released: ${releasedTotal}`);
+
+        // Update QTY OK yang tersedia dalam map
+        qtyOkAvailableMap[expectedSecondMID][k].availableBoxes -= boxesToUseNow;
+        boxesReleased += boxesToUseNow;
+
+        Logger.log(`Released ${boxesToUseNow} boxes for Booking ID: ${bookingID}, Second MID: ${secondMID}`);
+      }
+
+      // Menambahkan ke pickingList dan outboundEntries
+      if (boxesReleased < totalBoxesNeeded) {
+        const remainingBoxesInBooking = totalBoxesNeeded - boxesReleased;
+        const remainingPalletsInBooking = remainingBoxesInBooking / converter;
+
+        // Update Quantity (Pallet) pada sheet BOOKINGS
+        const newQuantityPallet = Math.round(remainingPalletsInBooking * 10000) / 10000;
+        bookingsSheet.getRange(rowNumber, quantityBookingIndex + 1).setValue(newQuantityPallet);
+
+        insufficientItems.push({
+          bookingID: bookingID || 'Undefined',
+          mid: mid,
+          lane: lane,
+          shortage: `Quantity belum habis. Sisa Quantity: ${remainingBoxesInBooking} boxes (${newQuantityPallet} pallets).`
+        });
+
+        pickingList.push({
+          lane: lane,
+          zona: zona,
+          mid: mid,
+          quantity: boxesReleased,
+          date: today
+        });
+
+        outboundEntries.push([
+          bookingID,
+          mid,
+          lane,
+          zona,
+          boxesReleased,
+          today,
+          'Released',
+          'Partial'
+        ]);
+      } else {
+        // Full release
+        outboundEntries.push([
+          bookingID,
+          mid,
+          lane,
+          zona,
+          boxesReleased,
+          today,
+          'Released',
+          'Full'
+        ]);
+
+        pickingList.push({
+          lane: lane,
+          zona: zona,
+          mid: mid,
+          quantity: boxesReleased,
+          date: today
+        });
+
+        // Update status to 'Rilis' dan hapus booking jika sudah full release
+        bookingsSheet.getRange(rowNumber, statusIndexBooking + 1).setValue('Rilis');
+        rowsToDelete.push(rowNumber);
+      }
+    }
+
+    // Memproses Picking List
+    let pickingSheet = ssMain.getSheetByName(PICKING_LIST_SHEET_NAME);
+    if (!pickingSheet) {
+      pickingSheet = ssMain.insertSheet(PICKING_LIST_SHEET_NAME);
+      pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity (Box)', 'Date']);
+    } else {
+      pickingSheet.clearContents();
+      pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity (Box)', 'Date']);
+    }
+
+    pickingList.forEach(item => {
+      pickingSheet.appendRow([item.lane, item.zona, item.mid, item.quantity, item.date]);
+    });
+
+    // Memproses Outbound Entries
+    if (outboundEntries.length > 0) {
+      const lastRow = outboundSheet.getLastRow();
+      outboundSheet.getRange(lastRow + 1, 1, outboundEntries.length, outboundEntries[0].length).setValues(outboundEntries);
+    }
+
+    // Menghapus Booking yang Telah Direlease secara penuh
+    rowsToDelete.sort((a, b) => b - a); // Urutkan descending untuk menghindari shift saat menghapus
+    rowsToDelete.forEach(rowNum => {
+      bookingsSheet.deleteRow(rowNum);
+    });
+
+    if (insufficientItems.length > 0) {
+      let errorMessage = 'Beberapa booking telah direlease dengan pengurangan partial dan beberapa tidak dapat direlease karena kekurangan stok:\n';
+      insufficientItems.forEach(item => {
+        errorMessage += `Booking ID: ${item.bookingID}, MID: ${item.mid}, Lane: ${item.lane}, Kekurangan: ${item.shortage}\n`;
+      });
+      return {
+        success: true,
+        pickingList: pickingList,
+        insufficientItems: insufficientItems,
+        message: errorMessage
+      };
+    }
+
+    return {
+      success: true,
+      pickingList: pickingList,
+      insufficientItems: insufficientItems
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+
+/**
+ * Function to get unique MIDs from the main spreadsheet
+ * @returns {Array} Array of unique MIDs
+ */
+function getMIDs() {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+
+  // Assume first row is header
+  const headers = data[0];
+
+  const midIndex = getColumnIndex(headers, 'MID');
+
+  if (midIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "MID".');
+  }
+
+  const mids = data.slice(1).map(row => row[midIndex]).filter(mid => mid && mid.toString().trim() !== '');
+  const uniqueMIDs = [...new Set(mids)];
+  return uniqueMIDs;
+}
+
+/**
+ * Function to get unique lanes for a given MID, sorted by FIFO
+ * @param {String} mid - Selected MID
+ * @returns {Array} Array of lane objects dengan tanggal yang tersedia untuk MID, diurutkan berdasarkan FIFO
+ */
+function getLanesForMID(mid) {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+
+  // Assume first row is header
+  const headers = data[0];
+
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const midIndex = getColumnIndex(headers, 'MID');
+  const dateIndex = getColumnIndex(headers, 'Date');
+  const quantityIndex = getColumnIndex(headers, 'Quantity');
+
+  if (laneIndex === -1 || midIndex === -1 || dateIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", "Date", dan "Quantity".');
+  }
+
+  // Filter rows dengan MID dan Quantity > 0
+  const filteredRows = data.slice(1).filter(row => row[midIndex] === mid && Number(row[quantityIndex]) > 0);
+
+  // Sort filtered rows berdasarkan tanggal (FIFO)
+  filteredRows.sort((a, b) => {
+    const dateA = rowHasDate(a, dateIndex) ? new Date(a[dateIndex]) : new Date('9999-12-31');
+    const dateB = rowHasDate(b, dateIndex) ? new Date(b[dateIndex]) : new Date('9999-12-31');
+    return dateA - dateB;
+  });
+
+  // Create an object to store Lane and the earliest date (FIFO)
+  const laneDateMap = {};
+  filteredRows.forEach(row => {
+    const lane = row[laneIndex];
+    const date = row[dateIndex] ? formatDate(row[dateIndex]) : 'N/A';
+    if (!laneDateMap[lane]) {
+      laneDateMap[lane] = date;
+    }
+  });
+
+  // Extract unique lanes dengan dates
+  const lanesWithDates = Object.keys(laneDateMap).map(lane => ({
+    lane: lane,
+    date: laneDateMap[lane]
+  }));
+
+  return lanesWithDates;
+}
+
+/**
+ * Function to get the Quantity from the main spreadsheet for booking
+ * @param {String} mid - Selected MID
+ * @param {String} lane - Selected Lane
+ * @returns {Number} Quantity in pallets
+ */
+function getQuantityFromMainSpreadsheet(mid, lane) {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(MAIN_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  const headers = data[0];
+
+  const midIndex = getColumnIndex(headers, 'MID');
+  const laneIndex = getColumnIndex(headers, 'Lane');
+  const quantityIndex = getColumnIndex(headers, 'Quantity');
+
+  if (midIndex === -1 || laneIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet utama memiliki kolom "MID", "Lane", dan "Quantity".');
+  }
+
+  // Cari baris yang cocok dengan MID dan Lane
+  const matchingRows = data.slice(1).filter(row => 
+    row[midIndex] === mid && 
+    row[laneIndex] === lane && 
+    Number(row[quantityIndex]) > 0
+  );
+
+  if (matchingRows.length === 0) {
+    return 0;
+  }
+
+  // Ambil Quantity dari baris pertama yang cocok
+  const quantity = Number(matchingRows[0][quantityIndex]);
+
+  return quantity;
+}
+
+/**
+ * Helper function to format date to 'dd/MM/yyyy'
+ * @param {String|Date} date - Tanggal dalam format string atau Date object
+ * @returns {String} Formatted date string
+ */
+function formatDate(date) {
+  if (Object.prototype.toString.call(date) === "[object Date]") {
+    // Valid date object
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), 'dd/MM/yyyy');
+  } else {
+    // Assume date is string in some format, try to parse it
+    const parsedDate = new Date(date);
+    if (!isNaN(parsedDate)) {
+      return Utilities.formatDate(parsedDate, Session.getScriptTimeZone(), 'dd/MM/yyyy');
+    } else {
+      return ''; // Invalid date
+    }
+  }
+}
+
+/**
+ * Helper function to check if a row has a date
+ * @param {Array} row - Row data
+ * @param {Number} dateIndex - Index of the date column
+ * @returns {Boolean} - True if the row has a date, false otherwise
+ */
+function rowHasDate(row, dateIndex) {
+  return row[dateIndex] && row[dateIndex].toString().trim() !== '';
+}
+
+/**
+ * Function to get booking data for the table
+ * @returns {Object} Object containing headers and rows
+ */
+function getBookingData() {
+  const ss = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const bookingsSheet = ss.getSheetByName(BOOKINGS_SHEET_NAME);
+  if (!bookingsSheet) {
+    return {
+      headers: [],
+      rows: []
+    };
+  }
+
+  const data = bookingsSheet.getDataRange().getValues();
+  if (data.length === 0) {
+    return {
+      headers: [],
+      rows: []
+    };
+  }
+
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  // Format tanggal (kolom ke-6, indeks 5)
+  const formattedRows = rows.map(row => {
+    const formattedRow = [...row];
+    const dateCell = row[5];
+    if (dateCell instanceof Date) {
+      // Format tanggal menjadi DD/MM/YYYY
+      const day = ("0" + dateCell.getDate()).slice(-2);
+      const month = ("0" + (dateCell.getMonth() + 1)).slice(-2);
+      const year = dateCell.getFullYear();
+      formattedRow[5] = `${day}/${month}/${year}`;
+    }
+    return formattedRow;
+  });
+
+  return {
+    headers: headers,
+    rows: formattedRows
+  };
+}
+
+
+
+
+
+
+/* TRIAL OUTBOUND FULL PALLET MANUAL */
+
+// **Konstanta untuk Spreadsheet**
+const TRIAL_OUTBOUND_SPREADSHEET_ID = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8';
+const TRIAL_OUTBOUND_SHEET_NAME = 'LANE STATUS';
+const TRIAL_OUTBOUND_PICKING_LIST_SHEET_NAME = 'PICKING LIST'; // Nama baru sheet Picking List
+
+/**
+ * Fungsi untuk mendapatkan indeks kolom dengan ignore case dan trim
+ * @param {Array} headers - Array nama kolom
+ * @param {String} columnName - Nama kolom yang dicari
+ * @returns {Number} - Indeks kolom atau -1 jika tidak ditemukan
+ */
+function TRIAL_OUTBOUND_getColumnIndex(headers, columnName) {
+  for (let i = 0; i < headers.length; i++) {
+    if (headers[i].toString().trim().toLowerCase() === columnName.toLowerCase()) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Fungsi utama untuk memproses outbound menggunakan FIFO dan membuat PICKING LIST
+ * Dipanggil dari frontend
+ * @param {Array} outboundOrders - Array objek {mid, lane, quantity}
+ * @returns {Object} Result object dengan status dan pickingList atau error
+ */
+function TRIAL_OUTBOUND_processOutboundFIFO(outboundOrders) {
+  const ss = SpreadsheetApp.openById(TRIAL_OUTBOUND_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(TRIAL_OUTBOUND_SHEET_NAME);
+  
+  // Ambil semua data dari sheet
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Lane');
+  const zonaIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Zona');
+  const quantityIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Quantity');
+  const midIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'MID');
+  const dateIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Date');
+  
+  // Log untuk debugging
+  Logger.log('Lane Index: ' + laneIndex);
+  Logger.log('Zona Index: ' + zonaIndex);
+  Logger.log('Quantity Index: ' + quantityIndex);
+  Logger.log('MID Index: ' + midIndex);
+  Logger.log('Date Index: ' + dateIndex);
+  
+  if (laneIndex === -1 || zonaIndex === -1 || quantityIndex === -1 || midIndex === -1 || dateIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "Zona", "Quantity", "MID", dan "Date".');
+  }
+  
+  const pickingList = [];
+  const insufficientItems = [];
+  const midsToClear = []; // Menyimpan nomor baris yang MID-nya akan dihapus
+  
+  outboundOrders.forEach(order => {
+    const { mid, lane, quantity: orderQuantity } = order;
+    let remainingQuantity = orderQuantity;
+    
+    // Temukan semua baris dengan MID dan Lane yang dipilih, Quantity >0
+    const filteredItems = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane && row[quantityIndex] > 0)
+                              .sort((a, b) => {
+                                const dateA = a[dateIndex] ? new Date(a[dateIndex]) : new Date('9999-12-31');
+                                const dateB = b[dateIndex] ? new Date(b[dateIndex]) : new Date('9999-12-31');
+                                return dateA - dateB;
+                              });
+    
+    if (filteredItems.length === 0) {
+      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
+      return;
+    }
+    
+    filteredItems.forEach(row => {
+      if (remainingQuantity <= 0) return;
+      
+      const availableQuantity = row[quantityIndex];
+      const deductQuantity = Math.min(availableQuantity, remainingQuantity);
+      
+      // Update Quantity di sheet
+      const rowNumber = data.indexOf(row) + 1;
+      const newQuantity = availableQuantity - deductQuantity;
+      sheet.getRange(rowNumber, quantityIndex + 1).setValue(newQuantity);
+      
+      // Tambahkan ke PICKING LIST
+      pickingList.push({
+        lane: row[laneIndex],
+        zona: row[zonaIndex],
+        mid: mid,
+        quantity: deductQuantity,
+        date: row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A'
+      });
+      
+      remainingQuantity -= deductQuantity;
+      
+      // Jika Quantity sudah nol, tandai baris untuk menghapus MID
+      if (newQuantity === 0) {
+        midsToClear.push(rowNumber);
+      }
+    });
+    
+    if (remainingQuantity > 0) {
+      insufficientItems.push({ mid, lane, shortage: remainingQuantity });
+    }
+  });
+  
+  // Tulis PICKING LIST ke sheet baru atau sheet yang sama
+  let pickingSheet = ss.getSheetByName(TRIAL_OUTBOUND_PICKING_LIST_SHEET_NAME);
+  if (!pickingSheet) {
+    pickingSheet = ss.insertSheet(TRIAL_OUTBOUND_PICKING_LIST_SHEET_NAME);
+    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
+  } else {
+    pickingSheet.clearContents();
+    pickingSheet.appendRow(['Lane', 'Zona', 'MID', 'Quantity', 'Date']);
+  }
+  
+  pickingList.forEach(item => {
+    pickingSheet.appendRow([item.lane, item.zona, item.mid, item.quantity, item.date]);
+  });
+  
+  // Hapus data MID pada baris yang Quantity-nya nol
+  if (midsToClear.length > 0) {
+    midsToClear.forEach(rowNumber => {
+      sheet.getRange(rowNumber, midIndex + 1).setValue(''); // Menghapus nilai MID
+    });
+  }
+  
+  return {
+    success: true,
+    pickingList: pickingList,
+    insufficientItems: insufficientItems
+  };
+}
+
+/**
+ * Fungsi untuk mengambil daftar unik MID dari spreadsheet
+ * Dipanggil dari frontend
+ * @returns {Array} Array unik MID
+ */
+function TRIAL_OUTBOUND_getMIDs() {
+  const cache = CacheService.getScriptCache();
+  const cachedMIDs = cache.get('uniqueMIDs');
+  
+  if (cachedMIDs) {
+    return JSON.parse(cachedMIDs);
+  }
+  
+  const ss = SpreadsheetApp.openById(TRIAL_OUTBOUND_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(TRIAL_OUTBOUND_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const midIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'MID');
+  
+  // Log untuk debugging
+  Logger.log('MID Index: ' + midIndex);
+  
+  if (midIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "MID".');
+  }
+  
+  const mids = data.slice(1).map(row => row[midIndex]).filter(mid => mid && mid.toString().trim() !== '');
+  const uniqueMIDs = [...new Set(mids)];
+  
+  // Cache the unique MIDs for 10 minutes
+  cache.put('uniqueMIDs', JSON.stringify(uniqueMIDs), 600);
+  
+  return uniqueMIDs;
+}
+
+/**
+ * Fungsi untuk mengambil daftar unik lanes untuk MID yang diberikan, diurutkan berdasarkan FIFO
+ * Dipanggil dari frontend
+ * @param {String} mid - MID yang dipilih
+ * @returns {Array} Array objek lane dengan tanggal yang tersedia untuk MID tersebut, diurutkan berdasarkan FIFO
+ */
+function TRIAL_OUTBOUND_getLanesForMID(mid) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `lanesForMID_${mid}`;
+  const cachedLanes = cache.get(cacheKey);
+  
+  if (cachedLanes) {
+    return JSON.parse(cachedLanes);
+  }
+  
+  const ss = SpreadsheetApp.openById(TRIAL_OUTBOUND_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(TRIAL_OUTBOUND_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Lane');
+  const midIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'MID');
+  const quantityIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Quantity');
+  const dateIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Date');
+  
+  if (laneIndex === -1 || midIndex === -1 || dateIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", "Quantity", dan "Date".');
+  }
+  
+  // Filter rows dengan MID dan Quantity >0
+  const filteredRows = data.slice(1).filter(row => row[midIndex] === mid && row[quantityIndex] > 0);
+  
+  // Sort berdasarkan Date ascending (FIFO)
+  filteredRows.sort((a, b) => {
+    const dateA = TRIAL_OUTBOUND_rowHasDate(a, dateIndex) ? new Date(a[dateIndex]) : new Date('9999-12-31');
+    const dateB = TRIAL_OUTBOUND_rowHasDate(b, dateIndex) ? new Date(b[dateIndex]) : new Date('9999-12-31');
+    return dateA - dateB;
+  });
+  
+  // Membuat objek untuk menyimpan Lane dan tanggal pertama kali muncul (FIFO)
+  const laneDateMap = {};
+  filteredRows.forEach(row => {
+    const lane = row[laneIndex];
+    const date = row[dateIndex] ? Utilities.formatDate(new Date(row[dateIndex]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : 'N/A';
+    if (!laneDateMap[lane]) {
+      laneDateMap[lane] = date;
+    }
+  });
+  
+  // Extract unique lanes dengan tanggal
+  const lanesWithDates = Object.keys(laneDateMap).map(lane => ({
+    lane: lane,
+    date: laneDateMap[lane]
+  }));
+  
+  // Cache the lanes for this MID for 10 minutes
+  cache.put(cacheKey, JSON.stringify(lanesWithDates), 600);
+  
+  return lanesWithDates;
+}
+
+/**
+ * Fungsi untuk mengambil Quantity yang tersedia untuk MID dan Lane tertentu
+ * Dipanggil dari frontend
+ * @param {String} mid - MID yang dipilih
+ * @param {String} lane - Lane yang dipilih
+ * @returns {Number} Quantity yang tersedia
+ */
+function TRIAL_OUTBOUND_getAvailableQuantity(mid, lane) {
+  const ss = SpreadsheetApp.openById(TRIAL_OUTBOUND_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(TRIAL_OUTBOUND_SHEET_NAME);
+  const dataRange = sheet.getDataRange();
+  const data = dataRange.getValues();
+  
+  // Asumsikan baris pertama adalah header
+  const headers = data[0];
+  
+  const laneIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Lane');
+  const midIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'MID');
+  const quantityIndex = TRIAL_OUTBOUND_getColumnIndex(headers, 'Quantity');
+  
+  if (laneIndex === -1 || midIndex === -1 || quantityIndex === -1) {
+    throw new Error('Pastikan sheet memiliki kolom "Lane", "MID", dan "Quantity".');
+  }
+  
+  // Cari baris yang sesuai dengan MID dan Lane
+  const matchingRows = data.slice(1).filter(row => row[midIndex] === mid && row[laneIndex] === lane);
+  
+  // Jumlahkan Quantity yang tersedia
+  const totalAvailable = matchingRows.reduce((acc, row) => acc + row[quantityIndex], 0);
+  
+  return totalAvailable;
+}
+
+/**
+ * Helper function untuk memeriksa apakah baris memiliki tanggal
+ * @param {Array} row - Baris data
+ * @param {Number} dateIndex - Indeks kolom tanggal
+ * @returns {Boolean} - True jika memiliki tanggal, false jika tidak
+ */
+function TRIAL_OUTBOUND_rowHasDate(row, dateIndex) {
+  return row[dateIndex] && row[dateIndex].toString().trim() !== '';
+}
+
+/**
+ * Fungsi untuk mengembalikan halaman HTML utama
+ * @returns {HtmlOutput} Output HTML untuk ditampilkan
+ */
+function TRIAL_OUTBOUND_getMainPage() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('Outbound FMCG')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+
+
+/* HISTORY OUTBOUND */
+
+// Code.gs
+
+function getOutboundData() {
+  return getDataFromSheet('OUTBOUND');
+}
+
+function getInboundRawData() {
+  return getDataFromSheet('INBOUND RAW');
+}
+
+/**
+ * General function to retrieve data from a specific sheet.
+ * @param {string} sheetName - The name of the sheet to retrieve data from.
+ * @returns {Array<Object>} - Array of objects containing the sheet data.
+ */
+function getDataFromSheet(sheetName) {
+  try {
+    const spreadsheetId = '1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8'; // Replace with your spreadsheet ID
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    Logger.log(`Spreadsheet with ID ${spreadsheetId} opened successfully.`);
+    
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      throw new Error(`Sheet "${sheetName}" not found.`);
+    }
+    Logger.log(`Sheet "${sheetName}" found successfully.`);
+    
+    const data = sheet.getDataRange().getValues();
+    Logger.log(`Data from sheet "${sheetName}" retrieved successfully.`);
+    
+    if (data.length < 2) {
+      Logger.log(`No data rows found in sheet "${sheetName}".`);
+      return [];
+    }
+    
+    const headers = data[0];
+    Logger.log(`Headers from sheet "${sheetName}": ${JSON.stringify(headers)}`);
+    
+    const rows = data.slice(1).map(row => {
+      let obj = {};
+      headers.forEach((header, index) => {
+        let cell = row[index];
+        
+        // Convert each value to string
+        if (header === 'Date') {
+          if (cell instanceof Date) {
+            // Format date as 'dd-mm-yyyy'
+            const day = String(cell.getDate()).padStart(2, '0');
+            const month = String(cell.getMonth() + 1).padStart(2, '0');
+            const year = cell.getFullYear();
+            obj[header] = `${day}-${month}-${year}`;
+          } else {
+            obj[header] = String(cell);
+          }
+        } else if (header === 'Clock' && sheetName !== 'OUTBOUND') {
+          if (cell instanceof Date) {
+            // Format time as 'HH:MM:SS'
+            const hours = String(cell.getHours()).padStart(2, '0');
+            const minutes = String(cell.getMinutes()).padStart(2, '0');
+            const seconds = String(cell.getSeconds()).padStart(2, '0');
+            obj[header] = `${hours}:${minutes}:${seconds}`;
+          } else {
+            obj[header] = String(cell);
+          }
+        } else if (typeof cell === 'number') {
+          // Format number as string without decimals
+          obj[header] = String(cell);
+        } else {
+          // If string or other type, convert to string
+          obj[header] = String(cell);
+        }
+      });
+      return obj;
+    });
+    
+    Logger.log(`Rows from sheet "${sheetName}": ${JSON.stringify(rows)}`);
+    return rows;
+  } catch (error) {
+    Logger.log(`Error in getDataFromSheet("${sheetName}"): ${error.message}`);
+    throw error;
+  }
+}
+
+/* Builder CLEANUP */
+
+
+// LaneStatus.gs
+
+// Konstanta untuk ID Spreadsheet dan Nama Sheet Lane Status
+const LS_SPREADSHEET_ID = "1bH3_loER7TNhomI13gXuuowNA45sIKuO9xbQjw1-WY8"; // Ganti dengan ID Spreadsheet Anda
+const LS_SHEET_NAME = "LANE STATUS";
+
+/**
+ * Fungsi untuk mendapatkan data Lane Status dari Spreadsheet.
+ * @returns {Array} - Array of records.
+ */
+function getLaneStatusDataCleanUp() {
+  try {
+    const ss = SpreadsheetApp.openById(LS_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(LS_SHEET_NAME);
+    if (!sheet) throw new Error("Sheet tidak ditemukan.");
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return [];
+    const headers = data[0].map(header => header.toString().trim());
+    const records = data.slice(1).map((row, index) => {
+      let record = {};
+      headers.forEach((header, idx) => {
+        let value = row[idx];
+        if (header === 'Date' && value instanceof Date) {
+          value = Utilities.formatDate(value, Session.getScriptTimeZone(), 'dd-MM-yyyy');
+        }
+        record[header] = value !== undefined ? value : '';
+      });
+      record['rowNumber'] = index + 2;
+      return record;
+    });
+    return records;
+  } catch (error) {
+    Logger.log(error);
+    throw error;
+  }
+}
+
+/**
+ * Fungsi untuk memperbarui data Lane Status di Spreadsheet dengan verifikasi kata sandi.
+ * @param {number} rowNumber - Nomor baris yang akan diperbarui.
+ * @param {Object} updatedData - Data yang akan diperbarui.
+ * @param {string} password - Kata sandi admin.
+ * @returns {Object} - Objek hasil operasi.
+ */
+function updateLaneStatusData(rowNumber, updatedData, password) {
+  try {
+    // Verifikasi kata sandi
+    if (!verifyPassword(password)) {
+      return { success: false, message: 'Incorrect password. Access denied.' };
+    }
+
+    const ss = SpreadsheetApp.openById(LS_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(LS_SHEET_NAME);
+    if (!sheet) throw new Error("Sheet tidak ditemukan.");
+    const lastRow = sheet.getLastRow();
+    if (rowNumber < 2 || rowNumber > lastRow) {
+      throw new Error("Nomor baris tidak valid.");
+    }
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const columnIndices = {};
+    headers.forEach((header, idx) => {
+      columnIndices[header] = idx + 1;
+    });
+
+    // Perbarui tanggal jika disediakan
+    if (updatedData.Date !== undefined) {
+      const dateParts = updatedData.Date.split('-');
+      if(dateParts.length !== 3){
+        throw new Error("Format tanggal tidak valid.");
+      }
+      const formattedDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+      if (isNaN(formattedDate)) {
+        throw new Error("Tanggal tidak valid.");
+      }
+      sheet.getRange(rowNumber, columnIndices['Date']).setValue(formattedDate);
+    }
+
+    // Update last run time
+    PropertiesService.getScriptProperties().setProperty('lastCleanUpTime', new Date().toISOString());
+
+    return { success: true };
+  } catch (error) {
+    Logger.log(error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Fungsi untuk melakukan clean-up data secara otomatis.
+ * Membersihkan kolom MID, Setting, dan Date untuk baris dengan Quantity 0.
+ * @returns {Object} - Objek hasil operasi.
+ */
+function cleanUpData() {
+  try {
+    const ss = SpreadsheetApp.openById(LS_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(LS_SHEET_NAME);
+    if (!sheet) throw new Error("Sheet tidak ditemukan.");
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return { success: true, message: "Tidak ada data untuk dibersihkan." };
+    const headers = data[0].map(header => header.toString().trim());
+    const quantityIdx = headers.indexOf('Quantity');
+    const midIdx = headers.indexOf('MID');
+    const settingIdx = headers.indexOf('Setting');
+    const dateIdx = headers.indexOf('Date');
+
+    if (quantityIdx === -1 || midIdx === -1 || settingIdx === -1 || dateIdx === -1) {
+      throw new Error("Salah satu kolom yang diperlukan tidak ditemukan.");
+    }
+
+    let cleanedCount = 0;
+    for (let i = 1; i < data.length; i++) {
+      const quantity = data[i][quantityIdx];
+      if (quantity === 0 || quantity === '0') {
+        sheet.getRange(i + 1, midIdx + 1).setValue('');
+        sheet.getRange(i + 1, settingIdx + 1).setValue('');
+        sheet.getRange(i + 1, dateIdx + 1).setValue('');
+        cleanedCount++;
+      }
+    }
+
+    // Update last run time
+    PropertiesService.getScriptProperties().setProperty('lastCleanUpTime', new Date().toISOString());
+
+    return { success: true, message: `Bersih ${cleanedCount} baris.` };
+  } catch (error) {
+    Logger.log(error);
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Fungsi untuk mendapatkan waktu clean-up berikutnya.
+ * @returns {string} - Waktu clean-up berikutnya atau informasi jika belum pernah dijalankan.
+ */
+function getNextCleanUpTime() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const lastRun = scriptProperties.getProperty('lastCleanUpTime');
+
+  if (!lastRun) {
+    return "Clean-up belum pernah dijalankan.";
+  }
+
+  const lastRunTime = new Date(lastRun);
+  const nextRunTime = new Date(lastRunTime.getTime() + 30 * 60 * 1000); // 30 menit setelah terakhir run
+  return Utilities.formatDate(nextRunTime, Session.getScriptTimeZone(), 'dd-MM-yyyy HH:mm:ss');
+}
+
+/**
+ * Fungsi untuk membuat trigger clean-up jika belum ada.
+ */
+function createCleanUpTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  const triggerExists = triggers.some(trigger => trigger.getHandlerFunction() === 'cleanUpData' && trigger.getEventType() === ScriptApp.EventType.TIME_BASED);
+  if (!triggerExists) {
+    ScriptApp.newTrigger('cleanUpData')
+      .timeBased()
+      .everyMinutes(30)
+      .create();
+  }
+}
+
